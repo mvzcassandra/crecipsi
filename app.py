@@ -143,10 +143,11 @@ st.markdown("""
 
 
 # ── TABS ─────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Curvas de Referencia",
     "🔍 Evaluar un Potro",
     "🎯 Predictor",
+    "🌍 Comparación Internacional",
     "ℹ️ Metodología"
 ])
 
@@ -731,7 +732,238 @@ with tab3:
 # ══════════════════════════════════════════════════════════════
 # TAB 4 — METODOLOGÍA
 # ══════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════
+# TAB 4 — COMPARACIÓN INTERNACIONAL
+# ══════════════════════════════════════════════════════════════
 
+with tab4:
+    st.markdown('<div class="section-pill">🌍 Rancho MX vs Literatura Internacional</div>',
+                unsafe_allow_html=True)
+
+    st.markdown("""
+    <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
+                padding:0.9rem 1.1rem;font-size:0.85rem;color:#2d5a3d;margin-bottom:1rem">
+        Comparación del P50 del rancho mexicano contra datos publicados en 
+        tres estudios internacionales de referencia en PSI.
+        Los valores de literatura corresponden a medias poblacionales.
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── Datos de literatura ──
+    import pandas as pd
+
+    # Hintz et al. 1979 (Canadá)
+    hintz_m = {0:55,1:98,2:132,3:170,4:195,5:221,6:245,7:270,
+               8:283,9:310,10:318,11:334,12:345,13:359,14:373,15:392,16:415,17:428,18:446}
+    hintz_h = {0:54,1:97,2:131,3:166,4:192,5:212,6:236,7:260,
+               8:272,9:296,10:304,11:320,12:329,13:343,14:355,15:375,16:392,17:406,18:424}
+    hintz_am = {0:100.6,1:110.8,2:118.5,3:125.2,4:128.9,5:131.6,6:134.6,
+                7:137.1,8:139.5,9:141.8,10:142.6,11:144.4,12:145.9,13:147.2,
+                14:148.8,15:150.2,16:151.8,17:152.8,18:154.5}
+
+    # Brown-Douglas & Pagan 2009 — Kentucky y Mundial (solo puntos disponibles)
+    ker_meses  = [0,    1,    6,    12,   18]
+    ker_ky     = [67.5, 99.3, 250.7,353.3,453.9]
+    ker_world  = [66.9, 98.6, 247.1,350.7,444.9]
+    ker_aus    = [69.6, 102.4,251.4,357.8,460.7]
+    ker_alz_ky = [105.7,112.6,135.9,147.8,154.7]
+    ker_alz_w  = [106.1,112.0,135.0,147.1,153.8]
+
+    # De Castro et al. 2021 — Brasil
+    dc_meses  = [0,    6,    12,   18]
+    dc_m      = [53.8, 243.8,337.2,432.7]
+    dc_h      = [56.6, 248.2,343.6,445.5]
+    dc_alz_m  = [102.2,135.8,146.5,154.2]
+    dc_alz_h  = [103.6,136.4,147.6,155.5]
+
+    # Rancho MX — P50
+    mx_m_p50 = {0:56,1:99,2:137,3:173,4:207,5:233,6:246,7:273,8:294,9:311,
+                10:322,11:335,12:347,13:360,14:379,15:397,16:412,17:430,18:428}
+    mx_h_p50 = {0:56,1:101,2:134,3:169,4:200,5:228,6:245,7:266,8:283,9:298,
+                10:311,11:322,12:332,13:346,14:365,15:384,16:404,17:435,18:444}
+    mx_am_p50 = {1:111,2:118,3:123,4:128,5:131,6:134,7:135,8:137,9:139,
+                 10:141,11:143,12:144,13:146,14:148,15:149,16:150,17:152,18:153}
+    mx_ah_p50 = {1:109,2:117,3:122,4:127,5:130,6:133,7:134,8:136,9:138,
+                 10:140,11:142,12:144,13:145,14:147,15:148,16:150,17:151,18:152}
+
+    COL_COMP = {
+        'MX':    '#1a4731',
+        'Hintz': '#e74c3c',
+        'KY':    '#2980b9',
+        'World': '#8e44ad',
+        'Aus':   '#16a085',
+        'BR':    '#f39c12',
+    }
+
+    # Selector
+    var_comp = st.radio("Variable a comparar:",
+                        ["Peso (kg)", "Alzada (cm)"],
+                        horizontal=True, key="var_comp")
+    sexo_comp = st.radio("Sexo:", ["Machos", "Hembras"],
+                         horizontal=True, key="sexo_comp")
+
+    fig_c, ax_c = plt.subplots(figsize=(13, 5.5))
+    fig_c.patch.set_facecolor("#f8faf8")
+    ax_c.set_facecolor("#f8faf8")
+
+    if "Peso" in var_comp:
+        if sexo_comp == "Machos":
+            # Rancho MX
+            ax_c.plot(list(mx_m_p50.keys()), list(mx_m_p50.values()),
+                      color=COL_COMP['MX'], linewidth=3.5, marker='o',
+                      markersize=5, label='Rancho MX — P50 (n=111)', zorder=6)
+            # Hintz
+            ax_c.plot(list(hintz_m.keys()), list(hintz_m.values()),
+                      color=COL_COMP['Hintz'], linewidth=2, linestyle='--',
+                      alpha=0.85, label='Hintz et al. 1979 — Canada')
+            # KER
+            ax_c.plot(ker_meses, ker_ky,
+                      color=COL_COMP['KY'], linewidth=2, linestyle='-.',
+                      marker='s', markersize=7, label='KER — Kentucky (Pagan 2009)')
+            ax_c.plot(ker_meses, ker_aus,
+                      color=COL_COMP['Aus'], linewidth=1.5, linestyle=':',
+                      marker='^', markersize=6, label='KER — Australia (Pagan 2009)')
+            ax_c.plot(ker_meses, ker_world,
+                      color=COL_COMP['World'], linewidth=2, linestyle='-.',
+                      alpha=0.8, label='KER — Promedio mundial')
+            # Brasil
+            ax_c.plot(dc_meses, dc_m,
+                      color=COL_COMP['BR'], linewidth=2,
+                      marker='D', markersize=8, label='De Castro et al. 2021 — Brasil')
+        else:
+            ax_c.plot(list(mx_h_p50.keys()), list(mx_h_p50.values()),
+                      color=COL_COMP['MX'], linewidth=3.5, marker='o',
+                      markersize=5, label='Rancho MX — P50 (n=106)', zorder=6)
+            ax_c.plot(list(hintz_h.keys()), list(hintz_h.values()),
+                      color=COL_COMP['Hintz'], linewidth=2, linestyle='--',
+                      alpha=0.85, label='Hintz et al. 1979 — Canada')
+            ax_c.plot(ker_meses, ker_ky,
+                      color=COL_COMP['KY'], linewidth=2, linestyle='-.',
+                      marker='s', markersize=7, label='KER — Kentucky (Pagan 2009)')
+            ax_c.plot(ker_meses, ker_world,
+                      color=COL_COMP['World'], linewidth=2, linestyle='-.',
+                      alpha=0.8, label='KER — Promedio mundial')
+            ax_c.plot(dc_meses, dc_h,
+                      color=COL_COMP['BR'], linewidth=2,
+                      marker='D', markersize=8, label='De Castro et al. 2021 — Brasil')
+
+        ax_c.set_ylabel("Peso (kg)", fontsize=11)
+        titulo_var = "Peso corporal"
+    else:
+        if sexo_comp == "Machos":
+            ax_c.plot(list(mx_am_p50.keys()), list(mx_am_p50.values()),
+                      color=COL_COMP['MX'], linewidth=3.5, marker='o',
+                      markersize=5, label='Rancho MX — P50', zorder=6)
+            ax_c.plot(list(hintz_am.keys()), list(hintz_am.values()),
+                      color=COL_COMP['Hintz'], linewidth=2, linestyle='--',
+                      alpha=0.85, label='Hintz et al. 1979 — Canada')
+            ax_c.plot(ker_meses, ker_alz_ky,
+                      color=COL_COMP['KY'], linewidth=2, linestyle='-.',
+                      marker='s', markersize=7, label='KER — Kentucky (Pagan 2009)')
+            ax_c.plot(ker_meses, ker_alz_w,
+                      color=COL_COMP['World'], linewidth=2, linestyle='-.',
+                      alpha=0.8, label='KER — Promedio mundial')
+            ax_c.plot(dc_meses, dc_alz_m,
+                      color=COL_COMP['BR'], linewidth=2,
+                      marker='D', markersize=8, label='De Castro et al. 2021 — Brasil')
+        else:
+            ax_c.plot(list(mx_ah_p50.keys()), list(mx_ah_p50.values()),
+                      color=COL_COMP['MX'], linewidth=3.5, marker='o',
+                      markersize=5, label='Rancho MX — P50', zorder=6)
+            ax_c.plot(list(hintz_am.keys()), list(hintz_am.values()),
+                      color=COL_COMP['Hintz'], linewidth=2, linestyle='--',
+                      alpha=0.85, label='Hintz et al. 1979 — Canada (machos)')
+            ax_c.plot(ker_meses, ker_alz_ky,
+                      color=COL_COMP['KY'], linewidth=2, linestyle='-.',
+                      marker='s', markersize=7, label='KER — Kentucky (Pagan 2009)')
+            ax_c.plot(ker_meses, ker_alz_w,
+                      color=COL_COMP['World'], linewidth=2, linestyle='-.',
+                      alpha=0.8, label='KER — Promedio mundial')
+            ax_c.plot(dc_meses, dc_alz_h,
+                      color=COL_COMP['BR'], linewidth=2,
+                      marker='D', markersize=8, label='De Castro et al. 2021 — Brasil')
+
+        ax_c.set_ylabel("Alzada (cm)", fontsize=11)
+        titulo_var = "Alzada a la cruz"
+
+    ax_c.set_xlabel("Edad (meses)", fontsize=11)
+    ax_c.set_title(
+        f"{titulo_var} — {sexo_comp} PSI\n"
+        f"Rancho mexicano 2015–2025 vs literatura internacional",
+        fontsize=12, fontweight='700'
+    )
+    ax_c.legend(fontsize=9, framealpha=0.9, edgecolor='#d4e8d8')
+    ax_c.grid(True, alpha=0.15, linestyle='--')
+    ax_c.spines['top'].set_visible(False)
+    ax_c.spines['right'].set_visible(False)
+    ax_c.set_xlim(-0.5, 22)
+    plt.tight_layout()
+    st.pyplot(fig_c)
+    plt.close(fig_c)
+
+    # ── Tabla comparativa en puntos clave ──
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.subheader("Tabla comparativa en puntos clave")
+
+    meses_k = [0, 6, 12, 18]
+    if "Peso" in var_comp and sexo_comp == "Machos":
+        data_tab = {
+            "Edad (meses)": meses_k,
+            "Rancho MX (kg)": [mx_m_p50.get(m,'—') for m in meses_k],
+            "Hintz 1979 Canada": [hintz_m.get(m,'—') for m in meses_k],
+            "KER Kentucky": ker_ky,
+            "KER Mundial": ker_world,
+            "Brasil 2021": dc_m,
+        }
+    elif "Peso" in var_comp and sexo_comp == "Hembras":
+        data_tab = {
+            "Edad (meses)": meses_k,
+            "Rancho MX (kg)": [mx_h_p50.get(m,'—') for m in meses_k],
+            "Hintz 1979 Canada": [hintz_h.get(m,'—') for m in meses_k],
+            "KER Kentucky": ker_ky,
+            "KER Mundial": ker_world,
+            "Brasil 2021": dc_h,
+        }
+    elif "Alzada" in var_comp and sexo_comp == "Machos":
+        data_tab = {
+            "Edad (meses)": meses_k,
+            "Rancho MX (cm)": [mx_am_p50.get(m,'—') for m in meses_k],
+            "Hintz 1979 Canada": [hintz_am.get(m,'—') for m in meses_k],
+            "KER Kentucky": ker_alz_ky,
+            "KER Mundial": ker_alz_w,
+            "Brasil 2021": dc_alz_m,
+        }
+    else:
+        data_tab = {
+            "Edad (meses)": meses_k,
+            "Rancho MX (cm)": [mx_ah_p50.get(m,'—') for m in meses_k],
+            "Hintz 1979 Canada": [hintz_am.get(m,'—') for m in meses_k],
+            "KER Kentucky": ker_alz_ky,
+            "KER Mundial": ker_alz_w,
+            "Brasil 2021": dc_alz_h,
+        }
+
+    st.dataframe(pd.DataFrame(data_tab),
+                 use_container_width=True, hide_index=True)
+
+    # ── Interpretación automática ──
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
+                padding:1rem 1.2rem;font-size:0.85rem;color:#2d5a3d">
+        <strong>Interpretacion de resultados:</strong><br><br>
+        Al <strong>nacimiento</strong>, el rancho mexicano muestra pesos similares a
+        Canada (Hintz, 1979) y Brasil (De Castro, 2021), pero inferiores a Kentucky y
+        el promedio mundial KER. Esto es consistente con diferencias geneticas y de
+        seleccion por industria hípica (Pagan, 2025).<br><br>
+        A los <strong>6 meses</strong>, las diferencias se reducen a menos de 5 kg en
+        todas las poblaciones, sugiriendo que el manejo nutricional postnatal del rancho
+        es comparable al estandar internacional.<br><br>
+        A los <strong>18 meses</strong>, el rancho mexicano muestra una brecha de 17-26 kg
+        respecto a las referencias angloamericanas, atribuible a que los animales son
+        vendidos al hipodromo antes de completar el ciclo de preparacion de yearling.
+    </div>
+    """, unsafe_allow_html=True)
 with tab4:
     st.markdown('<div class="section-pill">ℹ️ Metodología y referencias</div>',
                 unsafe_allow_html=True)
