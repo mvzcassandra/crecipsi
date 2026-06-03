@@ -905,42 +905,47 @@ with tab4:
     st.markdown("<hr>", unsafe_allow_html=True)
     st.subheader("Tabla comparativa en puntos clave")
 
-    meses_k = [0, 6, 12, 18]
+   meses_k = [0, 6, 12, 18]
+
+    def ker_val(lista, meses_lista, meses_target):
+        d = dict(zip(meses_lista, lista))
+        return [round(d[m], 1) if m in d else '—' for m in meses_target]
+
     if "Peso" in var_comp and sexo_comp == "Machos":
         data_tab = {
-            "Edad (meses)": meses_k,
-            "Rancho MX (kg)": [mx_m_p50.get(m,'—') for m in meses_k],
-            "Hintz 1979 Canada": [hintz_m.get(m,'—') for m in meses_k],
-            "KER Kentucky": ker_ky,
-            "KER Mundial": ker_world,
-            "Brasil 2021": dc_m,
+            "Edad (meses)":     meses_k,
+            "Rancho MX (kg)":   [mx_m_p50.get(m,'—')  for m in meses_k],
+            "Hintz 1979 Canada":[hintz_m.get(m,'—')    for m in meses_k],
+            "KER Kentucky":     ker_val(ker_ky,   ker_meses, meses_k),
+            "KER Mundial":      ker_val(ker_world, ker_meses, meses_k),
+            "Brasil 2021":      ker_val(dc_m,      dc_meses,  meses_k),
         }
     elif "Peso" in var_comp and sexo_comp == "Hembras":
         data_tab = {
-            "Edad (meses)": meses_k,
-            "Rancho MX (kg)": [mx_h_p50.get(m,'—') for m in meses_k],
-            "Hintz 1979 Canada": [hintz_h.get(m,'—') for m in meses_k],
-            "KER Kentucky": ker_ky,
-            "KER Mundial": ker_world,
-            "Brasil 2021": dc_h,
+            "Edad (meses)":     meses_k,
+            "Rancho MX (kg)":   [mx_h_p50.get(m,'—')  for m in meses_k],
+            "Hintz 1979 Canada":[hintz_h.get(m,'—')    for m in meses_k],
+            "KER Kentucky":     ker_val(ker_ky,   ker_meses, meses_k),
+            "KER Mundial":      ker_val(ker_world, ker_meses, meses_k),
+            "Brasil 2021":      ker_val(dc_h,      dc_meses,  meses_k),
         }
     elif "Alzada" in var_comp and sexo_comp == "Machos":
         data_tab = {
-            "Edad (meses)": meses_k,
-            "Rancho MX (cm)": [mx_am_p50.get(m,'—') for m in meses_k],
-            "Hintz 1979 Canada": [hintz_am.get(m,'—') for m in meses_k],
-            "KER Kentucky": ker_alz_ky,
-            "KER Mundial": ker_alz_w,
-            "Brasil 2021": dc_alz_m,
+            "Edad (meses)":     meses_k,
+            "Rancho MX (cm)":   [mx_am_p50.get(m,'—') for m in meses_k],
+            "Hintz 1979 Canada":[hintz_am.get(m,'—')   for m in meses_k],
+            "KER Kentucky":     ker_val(ker_alz_ky, ker_meses, meses_k),
+            "KER Mundial":      ker_val(ker_alz_w,  ker_meses, meses_k),
+            "Brasil 2021":      ker_val(dc_alz_m,   dc_meses,  meses_k),
         }
     else:
         data_tab = {
-            "Edad (meses)": meses_k,
-            "Rancho MX (cm)": [mx_ah_p50.get(m,'—') for m in meses_k],
-            "Hintz 1979 Canada": [hintz_am.get(m,'—') for m in meses_k],
-            "KER Kentucky": ker_alz_ky,
-            "KER Mundial": ker_alz_w,
-            "Brasil 2021": dc_alz_h,
+            "Edad (meses)":     meses_k,
+            "Rancho MX (cm)":   [mx_ah_p50.get(m,'—') for m in meses_k],
+            "Hintz 1979 Canada":[hintz_am.get(m,'—')   for m in meses_k],
+            "KER Kentucky":     ker_val(ker_alz_ky, ker_meses, meses_k),
+            "KER Mundial":      ker_val(ker_alz_w,  ker_meses, meses_k),
+            "Brasil 2021":      ker_val(dc_alz_h,   dc_meses,  meses_k),
         }
 
     st.dataframe(pd.DataFrame(data_tab),
