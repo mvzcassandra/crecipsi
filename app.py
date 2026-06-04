@@ -1157,29 +1157,90 @@ El reporte debe ser profesional, en español, con terminología veterinaria apro
                     st.error("API key no configurada. Agrega GEMINI_API_KEY en los secretos de Streamlit.")
                     st.stop()
 
-                url = (
-                    "https://generativelanguage.googleapis.com/v1beta/models/"
-                    f"gemini-2.0-flash:generateContent?key={api_key}"
-                )
+                with st.spinner("Generando reporte clínico con IA..."):
+            try:
+                import requests
+                import os
 
-                payload = {
-                    "contents": [{
-                        "parts": [{"text": prompt}]
-                    }],
-                    "generationConfig": {
-                        "temperature": 0.4,
-                        "maxOutputTokens": 1500,
-                    }
-                }
+                api_key = os.environ.get("GROQ_API_KEY", "")
+                if not api_key:
+                    st.error("API key no configurada. Agrega GROQ_API_KEY en los secretos de Streamlit.")
+                    st.stop()
 
                 response = requests.post(
-                    url,
-                    headers={"Content-Type": "application/json"},
-                    json=payload
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {api_key}"
+                    },
+                    json={
+                        "model": "llama-3.3-70b-versatile",
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": (
+                                    "Eres un médico veterinario especialista en equinos "
+                                    "con experiencia en cría de Pura Sangre Inglés (PSI). "
+                                    "Generas reportes clínicos profesionales, en español, "
+                                    "con terminología veterinaria apropiada."
+                                )
+                            },
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ],
+                        "temperature": 0.4,
+                        "max_tokens": 1500,
+                    }
                 )
 
                 data = response.json()
 
+                if "choices" in data and len(data["choices"]) > 0:
+                    reporte_texto = data["choices"][0]["message"]["content"]
+
+                    st.markdown("<hr>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div style="background:#1a4731;color:white;border-radius:10px;
+                                padding:1rem 1.5rem;margin-bottom:1rem">
+                        <div style="font-size:1.1rem;font-weight:700">
+                            Reporte Clínico — {nombre_ia or 'Potro evaluado'}
+                        </div>
+                        <div style="font-size:0.8rem;opacity:0.8;margin-top:0.3rem">
+                            {sexo_ia} · {rancho_ia} · Patrón: {patron_ia} · 
+                            Generado con LLaMA 3.3 70B (Meta AI) vía Groq
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    st.markdown(reporte_texto)
+
+                    st.markdown("<hr>", unsafe_allow_html=True)
+                    st.download_button(
+                        label="📄 Descargar reporte en .txt",
+                        data=(
+                            f"REPORTE CLÍNICO CRECIPSI\n"
+                            f"{'='*50}\n"
+                            f"Potro: {nombre_ia or 'Sin nombre'}\n"
+                            f"Sexo: {sexo_ia}\n"
+                            f"Rancho: {rancho_ia}\n"
+                            f"Patrón: {patron_ia}\n"
+                            f"Modelo: LLaMA 3.3 70B (Meta AI) vía Groq\n"
+                            f"{'='*50}\n\n"
+                            f"{reporte_texto}"
+                        ),
+                        file_name=f"reporte_{(nombre_ia or 'potro').replace(' ','_')}.txt",
+                        mime="text/plain"
+                    )
+
+                elif "error" in data:
+                    st.error(f"Error de Groq: {data['error'].get('message', 'Error desconocido')}")
+                else:
+                    st.error("Sin respuesta del modelo. Intenta de nuevo.")
+
+            except Exception as e:
+                st.error(f"Error al conectar con Groq: {str(e)}")
                 # Extraer texto de la respuesta de Gemini
                 if (
                     "candidates" in data
