@@ -143,11 +143,12 @@ st.markdown("""
 
 
 # ── TABS ─────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Curvas de Referencia",
     "🔍 Evaluar un Potro",
     "🎯 Predictor",
     "🌍 Comparación Internacional",
+    "🤖 Reporte IA",
     "ℹ️ Metodología"
 ])
 
@@ -930,48 +931,281 @@ with tab4:
     </div>
     """, unsafe_allow_html=True)
 
-
 # ══════════════════════════════════════════════════════════════
-# TAB 5 — METODOLOGÍA
+# TAB 5 — REPORTE IA
 # ══════════════════════════════════════════════════════════════
 
 with tab5:
-    st.markdown('<div class="section-pill">ℹ️ Metodologia y referencias</div>',
+    st.markdown('<div class="section-pill">🤖 Reporte Clínico con IA</div>',
                 unsafe_allow_html=True)
 
-    m1, m2 = st.columns(2)
-    with m1:
-        st.markdown("#### Base de datos")
-        st.markdown("""
-        Registros zootecnicos reales de un rancho PSI mexicano (2015-2025).
-        Dataset de **217 animales** con **4,175 mediciones** de peso y
-        **3,981 de alzada**. Completitud del 100% en alzada.
-        El 89.4% de los animales tienen peso al nacer registrado.
-        """)
-        st.markdown("#### Estadistica aplicada")
-        st.markdown("""
-        - Percentiles P10-P90 por edad (0-22 meses) y sexo
-        - Regresion polinomial grado 3 (sexo + edad + alzada a peso)
-        - Validacion train/test 80%/20% (random_state=42)
-        - Clasificador basado en criterios clinicos equinos
-        - Correlacion peso-alzada: r=0.9666 (Pearson, p<0.001)
-        """)
+    st.markdown("""
+    <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
+                padding:0.9rem 1.1rem;font-size:0.85rem;color:#2d5a3d;margin-bottom:1rem">
+        Ingresa los datos del potro y el sistema generará automáticamente un
+        reporte clínico narrativo con interpretación y recomendaciones,
+        utilizando inteligencia artificial (Claude Sonnet).
+    </div>
+    """, unsafe_allow_html=True)
 
-    with m2:
-        st.markdown("#### Metricas de validacion")
-        st.dataframe(pd.DataFrame({
-            "Modelo": ["Peso (con alzada)", "Peso (sin alzada)", "Alzada"],
-            "R2":     ["0.9641",            "0.9458",            "0.9552"],
-            "MAE":    ["15.1 kg",           "19.6 kg",           "2.0 cm"],
-        }), use_container_width=True, hide_index=True)
+    # ── Entrada de datos ──
+    st.subheader("Datos del potro")
 
-        st.markdown("#### Limitaciones")
-        st.markdown("""
-        - Curvas especificas para esta poblacion y rancho
-        - No generalizable sin validacion externa
-        - Sin variables de alimentacion ni sanidad
-        - 10.6% sin peso al nacer (cohorte 2015)
-        """)
+    col_ia1, col_ia2, col_ia3 = st.columns(3)
+    with col_ia1:
+        nombre_ia = st.text_input("Nombre / identificador",
+                                  placeholder="Ej. Hijo de Mila Race",
+                                  key="nombre_ia")
+    with col_ia2:
+        sexo_ia = st.radio("Sexo:", ["Macho", "Hembra"],
+                           horizontal=True, key="sexo_ia")
+    with col_ia3:
+        rancho_ia = st.text_input("Rancho", value="Rancho PSI México",
+                                  key="rancho_ia")
+
+    st.markdown("**Mediciones disponibles** — ingresa los datos que tengas:")
+
+    MESES_IA = [0, 1, 3, 6, 9, 12, 18]
+    pesos_ia = {}
+    alzadas_ia = {}
+
+    cols_ia = st.columns(4)
+    for i, mes in enumerate(MESES_IA):
+        with cols_ia[i % 4]:
+            lbl = "Nacimiento" if mes == 0 else f"Mes {mes}"
+            st.markdown(f"**{lbl}**")
+            c1, c2 = st.columns(2)
+            with c1:
+                pv = st.number_input("Peso kg", min_value=0.0, max_value=700.0,
+                                     value=0.0, step=1.0, key=f"pia_{mes}")
+            with c2:
+                av = st.number_input("Alzada m", min_value=0.0, max_value=2.0,
+                                     value=0.0, step=0.01, key=f"aia_{mes}")
+            if pv > 0:
+                pesos_ia[mes] = pv
+            if av > 0:
+                alzadas_ia[mes] = av
+
+    # Contexto clínico adicional
+    st.markdown("**Contexto clínico adicional** — opcional")
+    col_ctx1, col_ctx2 = st.columns(2)
+    with col_ctx1:
+        antecedentes = st.text_area(
+            "Antecedentes (enfermedades, tratamientos, etc.)",
+            placeholder="Ej. Desparasitado a los 2 meses, sin enfermedades reportadas...",
+            height=80, key="antecedentes_ia"
+        )
+    with col_ctx2:
+        manejo = st.text_area(
+            "Manejo y alimentación",
+            placeholder="Ej. Pastoreo libre + concentrado 1kg/día desde mes 3...",
+            height=80, key="manejo_ia"
+        )
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+    generar_ia = st.button("🤖 Generar reporte clínico con IA",
+                           type="primary", use_container_width=True,
+                           key="btn_ia")
+
+    if generar_ia:
+        meses_con_peso = [m for m in pesos_ia if pesos_ia[m] > 0]
+        if len(meses_con_peso) < 2:
+            st.warning("Ingresa al menos 2 mediciones de peso para generar el reporte.")
+            st.stop()
+
+        # ── Calcular percentiles para cada medición ──
+        sk_ia = "M" if sexo_ia == "Macho" else "H"
+        sp_ia = stats_ref[f"stats_{sk_ia}"]
+        sa_ia = stats_alz[f"stats_{sk_ia}"]
+
+        datos_eval = []
+        for mes in sorted(meses_con_peso):
+            if mes == 0:
+                datos_eval.append({
+                    "mes": mes,
+                    "etiqueta": "Nacimiento",
+                    "peso": pesos_ia[mes],
+                    "alzada": alzadas_ia.get(mes),
+                    "percentil_peso": "Sin referencia (mes 0)",
+                    "zona_peso": "N/A"
+                })
+                continue
+
+            ref = sp_ia[sp_ia.edad_meses == mes]
+            if ref.empty:
+                continue
+
+            peso = pesos_ia[mes]
+            p10  = ref["p10"].values[0]
+            p25  = ref["p25"].values[0]
+            p50  = ref["p50"].values[0]
+            p75  = ref["p75"].values[0]
+            p90  = ref["p90"].values[0]
+            diff = ((peso - p50) / p50) * 100
+
+            if peso < p10:
+                zona = "MUY BAJO (< P10)"
+            elif peso < p25:
+                zona = "BAJO (P10-P25)"
+            elif peso <= p75:
+                zona = "NORMAL (P25-P75)"
+            elif peso <= p90:
+                zona = "ALTO (P75-P90)"
+            else:
+                zona = "MUY ALTO (> P90)"
+
+            alz_info = ""
+            if mes in alzadas_ia and alzadas_ia[mes] > 0:
+                rfa = sa_ia[sa_ia.edad_meses == mes]
+                if not rfa.empty:
+                    a50 = rfa["p50"].values[0]
+                    da  = ((alzadas_ia[mes] - a50) / a50) * 100
+                    alz_info = f"{alzadas_ia[mes]:.2f} m ({da:+.1f}% vs mediana {a50:.2f} m)"
+
+            datos_eval.append({
+                "mes":            mes,
+                "etiqueta":       f"Mes {mes}",
+                "peso":           peso,
+                "p25":            round(p25, 1),
+                "p50":            round(p50, 1),
+                "p75":            round(p75, 1),
+                "diff_pct":       round(diff, 1),
+                "zona_peso":      zona,
+                "alzada_info":    alz_info,
+            })
+
+        # ── Clasificar patrón ──
+        vals_p = [d["peso"] for d in datos_eval if d["mes"] > 0]
+        n_bajo = sum(1 for d in datos_eval if "BAJO" in d.get("zona_peso", ""))
+        n_alto = sum(1 for d in datos_eval if "ALTO" in d.get("zona_peso", ""))
+        n_eval = len([d for d in datos_eval if d["mes"] > 0])
+
+        perdidas = sum(1 for i in range(1, len(vals_p)) if vals_p[i] < vals_p[i - 1])
+        caida    = any((vals_p[i] - vals_p[i - 1]) / vals_p[i - 1] * 100 < -8
+                       for i in range(1, len(vals_p)))
+
+        if (perdidas >= 4) or caida:
+            patron_ia = "Irregular"
+        elif n_alto / n_eval >= 0.6 if n_eval > 0 else False:
+            patron_ia = "Superior"
+        elif n_bajo / n_eval >= 0.6 if n_eval > 0 else False:
+            patron_ia = "Inferior"
+        else:
+            patron_ia = "Normal"
+
+        # ── Construir prompt para Claude ──
+        tabla_mediciones = "\n".join([
+            f"  - {d['etiqueta']}: {d['peso']} kg "
+            f"| Percentil: {d.get('zona_peso','N/A')} "
+            f"| {d['diff_pct']:+.1f}% vs mediana "
+            f"{'| Alzada: ' + d['alzada_info'] if d.get('alzada_info') else ''}"
+            if d["mes"] > 0 else
+            f"  - {d['etiqueta']}: {d['peso']} kg (peso al nacer)"
+            for d in datos_eval
+        ])
+
+        prompt = f"""Eres un médico veterinario especialista en equinos con experiencia en cría de Pura Sangre Inglés (PSI).
+
+Debes generar un REPORTE CLÍNICO PROFESIONAL sobre el crecimiento de un potro PSI basándote en los datos de monitoreo mensual, comparados contra curvas de referencia percentiladas construidas con 217 potros PSI de un rancho mexicano (2015-2025).
+
+DATOS DEL POTRO:
+- Nombre: {nombre_ia or 'Sin nombre'}
+- Sexo: {sexo_ia}
+- Rancho: {rancho_ia}
+- Patrón de crecimiento clasificado: {patron_ia}
+
+MEDICIONES Y PERCENTILES (referencia: rancho PSI México, P25-P75 = rango normal):
+{tabla_mediciones}
+
+ANTECEDENTES CLÍNICOS: {antecedentes if antecedentes else 'No especificados'}
+MANEJO Y ALIMENTACIÓN: {manejo if manejo else 'No especificado'}
+
+GENERA UN REPORTE CLÍNICO que incluya:
+
+1. **RESUMEN EJECUTIVO** (2-3 oraciones con el hallazgo principal)
+
+2. **EVALUACIÓN DEL CRECIMIENTO**
+   - Análisis del patrón de crecimiento identificado
+   - Comparación con la población de referencia del rancho
+   - Tendencia general (progresión, estabilidad, irregularidades)
+
+3. **HALLAZGOS RELEVANTES**
+   - Meses con valores fuera del rango normal (si los hay)
+   - Correlación entre peso y alzada (si se tienen ambos datos)
+   - Velocidad de ganancia de peso entre mediciones
+
+4. **RECOMENDACIONES CLÍNICAS**
+   - Al menos 3 recomendaciones específicas y accionables
+   - Ordenadas de mayor a menor urgencia
+   - Basadas en el patrón de crecimiento identificado
+
+5. **SEGUIMIENTO SUGERIDO**
+   - Frecuencia de monitoreo recomendada
+   - Indicadores de alarma que requieren atención veterinaria inmediata
+   - Próxima evaluación sugerida
+
+El reporte debe ser profesional, en español, con terminología veterinaria apropiada pero comprensible para el personal del rancho. Usa formato con secciones claramente delimitadas."""
+
+        # ── Llamar a la API de Claude ──
+        with st.spinner("Generando reporte clínico con IA..."):
+            try:
+                import requests
+
+                response = requests.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers={"Content-Type": "application/json"},
+                    json={
+                        "model": "claude-sonnet-4-20250514",
+                        "max_tokens": 1500,
+                        "messages": [{"role": "user", "content": prompt}]
+                    }
+                )
+
+                data = response.json()
+
+                if "content" in data and len(data["content"]) > 0:
+                    reporte_texto = data["content"][0]["text"]
+
+                    # ── Mostrar reporte ──
+                    st.markdown("<hr>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div style="background:#1a4731;color:white;border-radius:10px;
+                                padding:1rem 1.5rem;margin-bottom:1rem">
+                        <div style="font-size:1.1rem;font-weight:700">
+                            Reporte Clínico — {nombre_ia or 'Potro evaluado'}
+                        </div>
+                        <div style="font-size:0.8rem;opacity:0.8;margin-top:0.3rem">
+                            {sexo_ia} · {rancho_ia} · Patrón: {patron_ia} · 
+                            Generado con IA (Claude Sonnet)
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    st.markdown(reporte_texto)
+
+                    # Botón para copiar
+                    st.markdown("<hr>", unsafe_allow_html=True)
+                    st.download_button(
+                        label="📄 Descargar reporte en .txt",
+                        data=f"REPORTE CLÍNICO CRECIPSI\n"
+                             f"{'='*50}\n"
+                             f"Potro: {nombre_ia or 'Sin nombre'}\n"
+                             f"Sexo: {sexo_ia}\n"
+                             f"Rancho: {rancho_ia}\n"
+                             f"Patrón: {patron_ia}\n"
+                             f"{'='*50}\n\n"
+                             f"{reporte_texto}",
+                        file_name=f"reporte_{(nombre_ia or 'potro').replace(' ','_')}.txt",
+                        mime="text/plain"
+                    )
+
+                elif "error" in data:
+                    st.error(f"Error de API: {data['error'].get('message', 'Error desconocido')}")
+                else:
+                    st.error("No se recibió respuesta del modelo. Intenta de nuevo.")
+
+            except Exception as e:
+                st.error(f"Error al conectar con la API: {str(e)}")
 
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("#### Referencias (Vancouver)")
