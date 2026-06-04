@@ -1146,23 +1146,93 @@ GENERA UN REPORTE CLÍNICO que incluya:
 
 El reporte debe ser profesional, en español, con terminología veterinaria apropiada pero comprensible para el personal del rancho. Usa formato con secciones claramente delimitadas."""
 
-        # ── Llamar a la API de Claude ──
+        # ── Llamar a la Gemini──
         with st.spinner("Generando reporte clínico con IA..."):
             try:
                 import requests
+                import os
+
+                api_key = os.environ.get("GEMINI_API_KEY", "")
+                if not api_key:
+                    st.error("API key no configurada. Agrega GEMINI_API_KEY en los secretos de Streamlit.")
+                    st.stop()
+
+                url = (
+                    "https://generativelanguage.googleapis.com/v1beta/models/"
+                    f"gemini-1.5-flash:generateContent?key={api_key}"
+                )
+
+                payload = {
+                    "contents": [{
+                        "parts": [{"text": prompt}]
+                    }],
+                    "generationConfig": {
+                        "temperature": 0.4,
+                        "maxOutputTokens": 1500,
+                    }
+                }
 
                 response = requests.post(
-                    "https://api.anthropic.com/v1/messages",
+                    url,
                     headers={"Content-Type": "application/json"},
-                    json={
-                        "model": "claude-sonnet-4-20250514",
-                        "max_tokens": 1500,
-                        "messages": [{"role": "user", "content": prompt}]
-                    }
+                    json=payload
                 )
 
                 data = response.json()
 
+                # Extraer texto de la respuesta de Gemini
+                if (
+                    "candidates" in data
+                    and len(data["candidates"]) > 0
+                    and "content" in data["candidates"][0]
+                    and "parts" in data["candidates"][0]["content"]
+                ):
+                    reporte_texto = data["candidates"][0]["content"]["parts"][0]["text"]
+
+                    # ── Mostrar reporte ──
+                    st.markdown("<hr>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div style="background:#1a4731;color:white;border-radius:10px;
+                                padding:1rem 1.5rem;margin-bottom:1rem">
+                        <div style="font-size:1.1rem;font-weight:700">
+                            Reporte Clínico — {nombre_ia or 'Potro evaluado'}
+                        </div>
+                        <div style="font-size:0.8rem;opacity:0.8;margin-top:0.3rem">
+                            {sexo_ia} · {rancho_ia} · Patrón: {patron_ia} · 
+                            Generado con Gemini 1.5 Flash (Google AI)
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    st.markdown(reporte_texto)
+
+                    st.markdown("<hr>", unsafe_allow_html=True)
+                    st.download_button(
+                        label="📄 Descargar reporte en .txt",
+                        data=(
+                            f"REPORTE CLÍNICO CRECIPSI\n"
+                            f"{'='*50}\n"
+                            f"Potro: {nombre_ia or 'Sin nombre'}\n"
+                            f"Sexo: {sexo_ia}\n"
+                            f"Rancho: {rancho_ia}\n"
+                            f"Patrón: {patron_ia}\n"
+                            f"Modelo: Gemini 1.5 Flash (Google AI)\n"
+                            f"{'='*50}\n\n"
+                            f"{reporte_texto}"
+                        ),
+                        file_name=f"reporte_{(nombre_ia or 'potro').replace(' ','_')}.txt",
+                        mime="text/plain"
+                    )
+
+                elif "error" in data:
+                    msg = data["error"].get("message", "Error desconocido")
+                    st.error(f"Error de Gemini: {msg}")
+                else:
+                    st.error("No se recibió respuesta del modelo. Intenta de nuevo.")
+                    st.json(data)
+
+            except Exception as e:
+                st.error(f"Error al conectar con Gemini: {str(e)}")
                 if "content" in data and len(data["content"]) > 0:
                     reporte_texto = data["content"][0]["text"]
 
