@@ -1,5 +1,5 @@
 # ══════════════════════════════════════════════════════════════
-# CreciPSI v5.1 — Correcciones: applymap→map + gráficas con resultados
+# CreciPSI v5.2 — Versión completa corregida
 # FMVZ-UNAM | Diplomado IA en Salud Global 2025-2026
 # ══════════════════════════════════════════════════════════════
 
@@ -125,7 +125,7 @@ st.markdown("""
   <div style="text-align:right">
     <span class="badge">FMVZ-UNAM</span><br>
     <span style="font-size:0.72rem;opacity:0.65;margin-top:4px;display:block">
-      Diplomado IA en Salud Global · 2025–2026
+      Diplomado IA en Salud Global · 2025-2026
     </span>
   </div>
 </div>
@@ -135,7 +135,7 @@ st.markdown("""
 <div class="metric-strip">
   <div class="metric-box"><div class="mv">217</div><div class="ml">Potros PSI</div></div>
   <div class="metric-box"><div class="mv">4,175</div><div class="ml">Mediciones</div></div>
-  <div class="metric-box"><div class="mv">10 años</div><div class="ml">2015–2025</div></div>
+  <div class="metric-box"><div class="mv">10 años</div><div class="ml">2015-2025</div></div>
   <div class="metric-box"><div class="mv">0.964</div><div class="ml">R² Modelo</div></div>
   <div class="metric-box"><div class="mv">15 kg</div><div class="ml">Error medio</div></div>
 </div>
@@ -153,101 +153,81 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 
 
 # ══════════════════════════════════════════════════════════════
-# HELPER: graficar curvas con punto/curva del potro encima
+# HELPER: graficar curvas
 # ══════════════════════════════════════════════════════════════
 
 def fig_curvas(stats, color, titulo, ylabel, ylim,
                meses_anotados, fmt_anot, offset_anot,
                datos_potro=None, nombre_potro=None,
                punto_pred=None, edad_pred=None):
-    """
-    stats         : DataFrame con columnas edad_meses, p10, p25, p50, p75, p90
-    color         : color base de las curvas de referencia
-    datos_potro   : dict {mes: valor} — curva real del potro (naranja)
-    punto_pred    : float — valor puntual a marcar (predictor)
-    edad_pred     : int   — mes del punto puntual
-    """
     fig, ax = plt.subplots(figsize=(11, 4.8))
     fig.patch.set_facecolor("#f8faf8")
     ax.set_facecolor("#f8faf8")
     edades = stats["edad_meses"]
 
-    # Bandas percentiles
-    ax.fill_between(edades, stats.p10, stats.p90,
-                    alpha=0.08, color=color)
-    ax.fill_between(edades, stats.p25, stats.p75,
-                    alpha=0.22, color=color, label="Rango normal (P25–P75)")
-    ax.plot(edades, stats.p50, color=color,
-            linewidth=2.2, label="Mediana (P50)", zorder=3)
-    ax.plot(edades, stats.p10, color=color,
-            linewidth=0.8, linestyle=":", alpha=0.45, label="P10 / P90")
-    ax.plot(edades, stats.p90, color=color,
-            linewidth=0.8, linestyle=":", alpha=0.45)
+    ax.fill_between(edades, stats.p10, stats.p90, alpha=0.08, color=color)
+    ax.fill_between(edades, stats.p25, stats.p75, alpha=0.22, color=color,
+                    label="Rango normal (P25-P75)")
+    ax.plot(edades, stats.p50, color=color, linewidth=2.2,
+            label="Mediana (P50)", zorder=3)
+    ax.plot(edades, stats.p10, color=color, linewidth=0.8,
+            linestyle=":", alpha=0.45, label="P10 / P90")
+    ax.plot(edades, stats.p90, color=color, linewidth=0.8,
+            linestyle=":", alpha=0.45)
 
-    # Anotaciones de valores clave
     for mes in meses_anotados:
         f = stats[stats.edad_meses == mes]
-        if len(f) == 0: continue
+        if len(f) == 0:
+            continue
         v = f["p50"].values[0]
         ax.annotate(
             fmt_anot.format(v),
             xy=(mes, v), xytext=(mes + 0.5, v + offset_anot),
             fontsize=8, color=color, fontweight="600",
             arrowprops=dict(arrowstyle="->", color=color, lw=1),
-            bbox=dict(boxstyle="round,pad=0.25", fc="white",
-                      ec=color, alpha=0.85)
+            bbox=dict(boxstyle="round,pad=0.25", fc="white", ec=color, alpha=0.85)
         )
 
-    # Curva real del potro evaluado
     if datos_potro and len(datos_potro) >= 2:
         eds = sorted(datos_potro.keys())
         vls = [datos_potro[e] for e in eds]
         ax.plot(eds, vls, color="#e67e22", linewidth=2.5,
                 marker="o", markersize=7,
-                label=nombre_potro or "Potro evaluado",
-                zorder=5)
-        # Etiquetar cada punto con su valor
+                label=nombre_potro or "Potro evaluado", zorder=5)
         for e, v in zip(eds, vls):
             ax.annotate(
                 f"{v:.0f}" if offset_anot > 5 else f"{v:.2f}",
                 xy=(e, v), xytext=(e + 0.3, v + offset_anot * 0.6),
                 fontsize=7.5, color="#c0392b", fontweight="600",
-                arrowprops=dict(arrowstyle="-", color="#e67e22",
-                                lw=0.8, alpha=0.6)
+                arrowprops=dict(arrowstyle="-", color="#e67e22", lw=0.8, alpha=0.6)
             )
 
-    # Punto puntual del predictor
     if punto_pred is not None and edad_pred is not None:
-        ax.axvline(x=edad_pred, color="#94a3b8",
-                   linestyle="--", linewidth=1.2, alpha=0.8)
-        ax.scatter([edad_pred], [punto_pred],
-                   color="#e67e22", s=180, zorder=6,
-                   edgecolors="white", linewidths=2,
+        ax.axvline(x=edad_pred, color="#94a3b8", linestyle="--",
+                   linewidth=1.2, alpha=0.8)
+        ax.scatter([edad_pred], [punto_pred], color="#e67e22", s=180,
+                   zorder=6, edgecolors="white", linewidths=2,
                    label=f"Predicción: {punto_pred:.0f}" if offset_anot > 5
                          else f"Predicción: {punto_pred:.3f}")
         ax.annotate(
-            f"  {punto_pred:.0f} kg" if offset_anot > 5
-            else f"  {punto_pred:.3f} m",
+            f"  {punto_pred:.0f} kg" if offset_anot > 5 else f"  {punto_pred:.3f} m",
             xy=(edad_pred, punto_pred),
             xytext=(edad_pred + 0.8, punto_pred + offset_anot * 1.2),
             fontsize=9, color="#c0392b", fontweight="700",
             arrowprops=dict(arrowstyle="->", color="#e67e22", lw=1.2),
-            bbox=dict(boxstyle="round,pad=0.3", fc="#fff3e0",
-                      ec="#e67e22", alpha=0.9)
+            bbox=dict(boxstyle="round,pad=0.3", fc="#fff3e0", ec="#e67e22", alpha=0.9)
         )
 
     ax.set_xlabel("Edad (meses)", fontsize=10, color="#4a4a4a")
     ax.set_ylabel(ylabel, fontsize=10, color="#4a4a4a")
-    ax.set_title(titulo, fontsize=11, fontweight="700",
-                 color="#1a2e1a", pad=10)
-    ax.legend(fontsize=8.5, framealpha=0.9,
-              edgecolor="#d4e8d8", loc="upper left")
+    ax.set_title(titulo, fontsize=11, fontweight="700", color="#1a2e1a", pad=10)
+    ax.legend(fontsize=8.5, framealpha=0.9, edgecolor="#d4e8d8", loc="upper left")
     ax.grid(True, alpha=0.15, color="#94a3b8", linestyle="--")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
     ax.spines["left"].set_color("#d4e8d8")
     ax.spines["bottom"].set_color("#d4e8d8")
-    xlim_min = -0.3 if (0 in (edades.values if hasattr(edades,'values') else edades)) else 0.5
+    xlim_min = -0.3 if (0 in (edades.values if hasattr(edades, "values") else edades)) else 0.5
     ax.set_xlim(xlim_min, 22.5)
     ax.set_ylim(*ylim)
     ax.tick_params(colors="#6b7280", labelsize=8.5)
@@ -260,16 +240,14 @@ def fig_curvas(stats, color, titulo, ylabel, ylim,
 # ══════════════════════════════════════════════════════════════
 
 with tab1:
-    st.markdown('<div class="section-pill">📊 Curvas del rancho 2015–2025</div>',
+    st.markdown('<div class="section-pill">📊 Curvas del rancho 2015-2025</div>',
                 unsafe_allow_html=True)
 
     c1, c2, _ = st.columns([1, 1, 3])
     with c1:
-        sx1 = st.radio("Sexo:", ["Machos ♂","Hembras ♀"],
-                       horizontal=True, key="sx1")
+        sx1 = st.radio("Sexo:", ["Machos ♂", "Hembras ♀"], horizontal=True, key="sx1")
     with c2:
-        vr1 = st.radio("Variable:", ["Peso (kg)","Alzada (m)"],
-                       horizontal=True, key="vr1")
+        vr1 = st.radio("Variable:", ["Peso (kg)", "Alzada (m)"], horizontal=True, key="vr1")
 
     sk1 = "M" if "Machos" in sx1 else "H"
     n1  = 111 if sk1 == "M" else 106
@@ -278,31 +256,31 @@ with tab1:
         fig1 = fig_curvas(
             stats_ref[f"stats_{sk1}"], C[sk1],
             f"Curvas de Peso — {'Machos' if sk1=='M' else 'Hembras'} PSI  (n={n1})",
-            "Peso (kg)", (20, 570), [0,6,12,18], "{:.0f} kg", 20
+            "Peso (kg)", (20, 570), [0, 6, 12, 18], "{:.0f} kg", 20
         )
     else:
         fig1 = fig_curvas(
             stats_alz[f"stats_{sk1}"], C[sk1],
             f"Curvas de Alzada — {'Machos' if sk1=='M' else 'Hembras'} PSI  (n={n1})",
-            "Alzada (m)", (0.85, 1.68), [6,12,18], "{:.2f} m", 0.012
+            "Alzada (m)", (0.85, 1.68), [6, 12, 18], "{:.2f} m", 0.012
         )
 
-    st.pyplot(fig1); plt.close(fig1)
+    st.pyplot(fig1)
+    plt.close(fig1)
 
     with st.expander("Ver tabla de valores"):
-        st_d1 = stats_ref[f"stats_{sk1}"] if "Peso" in vr1 \
-                else stats_alz[f"stats_{sk1}"]
-        t1 = st_d1[["edad_meses","p10","p25","p50","p75","p90","n"]].copy()
-        t1.columns = ["Edad","P10","P25","P50","P75","P90","N"]
+        st_d1 = stats_ref[f"stats_{sk1}"] if "Peso" in vr1 else stats_alz[f"stats_{sk1}"]
+        t1 = st_d1[["edad_meses", "p10", "p25", "p50", "p75", "p90", "n"]].copy()
+        t1.columns = ["Edad", "P10", "P25", "P50", "P75", "P90", "N"]
         st.dataframe(t1.round(1 if "Peso" in vr1 else 3),
                      use_container_width=True, hide_index=True)
 
     st.markdown("""
     <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
                 padding:0.8rem 1rem;font-size:0.83rem;color:#2d5a3d;margin-top:0.5rem">
-        <strong>Cómo leer:</strong> La zona sombreada oscura es el rango normal (P25–P75).
-        Las líneas punteadas marcan P10 y P90. Un potro fuera de ese rango
-        merece seguimiento clínico.
+        <strong>Como leer:</strong> La zona sombreada oscura es el rango normal (P25-P75).
+        Las lineas punteadas marcan P10 y P90. Un potro fuera de ese rango
+        merece seguimiento clinico.
     </div>
     """, unsafe_allow_html=True)
 
@@ -318,51 +296,47 @@ with tab2:
     col_n, col_s = st.columns([2, 1])
     with col_n:
         nombre2 = st.text_input("Nombre / identificador",
-                                placeholder="Ej. Hijo de Mila Race",
-                                key="nombre2")
+                                placeholder="Ej. Hijo de Mila Race", key="nombre2")
     with col_s:
-        sx2 = st.radio("Sexo:", ["Macho ♂","Hembra ♀"],
-                       horizontal=True, key="sx2")
+        sx2 = st.radio("Sexo:", ["Macho ♂", "Hembra ♀"], horizontal=True, key="sx2")
     sk2 = "M" if "Macho" in sx2 else "H"
 
     st.markdown("""
     <div style="font-size:0.82rem;color:#6b8f72;margin:0.5rem 0 0.75rem">
         Ingresa <strong>peso (kg)</strong> y/o <strong>alzada (m)</strong>
-        en los meses disponibles. Mínimo 2 meses con peso.
-        Deja en 0 los meses sin medición.
+        en los meses disponibles. Minimo 2 meses con peso.
     </div>
     """, unsafe_allow_html=True)
 
     MESES_CLAVE = [1, 3, 6, 9, 12, 18]
-    MESES_EXTRA = [2,4,5,7,8,10,11,13,14,15,16,17,19,20,21,22]
+    MESES_EXTRA = [2, 4, 5, 7, 8, 10, 11, 13, 14, 15, 16, 17, 19, 20, 21, 22]
 
     pesos2   = {}
     alzadas2 = {}
 
-    # Peso al nacer
     pn_col, _ = st.columns([1, 3])
     with pn_col:
         pnac2 = st.number_input("Peso al nacer (kg) — opcional",
                                 min_value=0.0, max_value=80.0,
                                 value=0.0, step=0.5, key="pnac2")
-    if pnac2 > 0: pesos2[0] = pnac2
+    if pnac2 > 0:
+        pesos2[0] = pnac2
 
-    # Grid meses clave
     cols_k = st.columns(3)
     for i, mes in enumerate(MESES_CLAVE):
         with cols_k[i % 3]:
             st.markdown(f"**Mes {mes}**")
             ca, cb = st.columns(2)
             with ca:
-                pv = st.number_input("Peso kg", min_value=0.0,
-                                     max_value=700.0, value=0.0,
-                                     step=1.0, key=f"p2_{mes}")
+                pv = st.number_input("Peso kg", min_value=0.0, max_value=700.0,
+                                     value=0.0, step=1.0, key=f"p2_{mes}")
             with cb:
-                av = st.number_input("Alzada m", min_value=0.0,
-                                     max_value=2.0, value=0.0,
-                                     step=0.01, key=f"a2_{mes}")
-            if pv > 0: pesos2[mes]   = pv
-            if av > 0: alzadas2[mes] = av
+                av = st.number_input("Alzada m", min_value=0.0, max_value=2.0,
+                                     value=0.0, step=0.01, key=f"a2_{mes}")
+            if pv > 0:
+                pesos2[mes] = pv
+            if av > 0:
+                alzadas2[mes] = av
 
     with st.expander("➕ Agregar más meses"):
         cols_e = st.columns(4)
@@ -371,20 +345,19 @@ with tab2:
                 st.markdown(f"**Mes {mes}**")
                 ca2, cb2 = st.columns(2)
                 with ca2:
-                    pv2 = st.number_input("kg", min_value=0.0,
-                                          max_value=700.0, value=0.0,
-                                          step=1.0, key=f"p2_{mes}")
+                    pv2 = st.number_input("kg", min_value=0.0, max_value=700.0,
+                                          value=0.0, step=1.0, key=f"p2_{mes}")
                 with cb2:
-                    av2 = st.number_input("m", min_value=0.0,
-                                          max_value=2.0, value=0.0,
-                                          step=0.01, key=f"a2_{mes}")
-                if pv2 > 0: pesos2[mes]   = pv2
-                if av2 > 0: alzadas2[mes] = av2
+                    av2 = st.number_input("m", min_value=0.0, max_value=2.0,
+                                          value=0.0, step=0.01, key=f"a2_{mes}")
+                if pv2 > 0:
+                    pesos2[mes] = pv2
+                if av2 > 0:
+                    alzadas2[mes] = av2
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    analizar2 = st.button("🔍 Ver evaluación completa",
-                          type="primary", use_container_width=True,
-                          key="btn2")
+    analizar2 = st.button("🔍 Ver evaluación completa", type="primary",
+                          use_container_width=True, key="btn2")
 
     if analizar2:
         meses_p = sorted([m for m in pesos2 if pesos2[m] > 0 and m > 0])
@@ -392,86 +365,103 @@ with tab2:
             st.warning("Ingresa al menos 2 mediciones de peso (meses > 0).")
             st.stop()
 
-        sp2  = stats_ref[f"stats_{sk2}"]
-        sa2  = stats_alz[f"stats_{sk2}"]
+        sp2 = stats_ref[f"stats_{sk2}"]
+        sa2 = stats_alz[f"stats_{sk2}"]
         nombre_d = nombre2 or "Potro evaluado"
 
-        filas2 = []
+        filas2   = []
         alertas2 = []
         alto_cnt = bajo_cnt = 0
 
         for mes in meses_p:
             ref = sp2[sp2.edad_meses == mes]
-            if ref.empty: continue
+            if ref.empty:
+                continue
             peso = pesos2[mes]
-            p10=ref["p10"].values[0]; p25=ref["p25"].values[0]
-            p50=ref["p50"].values[0]; p75=ref["p75"].values[0]
-            p90=ref["p90"].values[0]
+            p10 = ref["p10"].values[0]
+            p25 = ref["p25"].values[0]
+            p50 = ref["p50"].values[0]
+            p75 = ref["p75"].values[0]
+            p90 = ref["p90"].values[0]
             diff = ((peso - p50) / p50) * 100
 
-            if peso < p10:    zona="MUY BAJO"; alerta=True;  bajo_cnt+=1
-            elif peso < p25:  zona="BAJO";     alerta=True;  bajo_cnt+=1
-            elif peso <= p75: zona="NORMAL";   alerta=False
-            elif peso <= p90: zona="ALTO";     alerta=False; alto_cnt+=1
-            else:             zona="MUY ALTO"; alerta=True;  alto_cnt+=1
+            if peso < p10:
+                zona = "MUY BAJO"; alerta = True;  bajo_cnt += 1
+            elif peso < p25:
+                zona = "BAJO";     alerta = True;  bajo_cnt += 1
+            elif peso <= p75:
+                zona = "NORMAL";   alerta = False
+            elif peso <= p90:
+                zona = "ALTO";     alerta = False; alto_cnt += 1
+            else:
+                zona = "MUY ALTO"; alerta = True;  alto_cnt += 1
 
-            if alerta: alertas2.append(mes)
+            if alerta:
+                alertas2.append(mes)
 
             alz_zona = None
             if mes in alzadas2 and alzadas2[mes] > 0:
                 rfa = sa2[sa2.edad_meses == mes]
                 if not rfa.empty:
-                    if alzadas2[mes] < rfa["p25"].values[0]:   alz_zona="Baja"
-                    elif alzadas2[mes] <= rfa["p75"].values[0]:alz_zona="Normal"
-                    else:                                       alz_zona="Alta"
+                    if alzadas2[mes] < rfa["p25"].values[0]:
+                        alz_zona = "Baja"
+                    elif alzadas2[mes] <= rfa["p75"].values[0]:
+                        alz_zona = "Normal"
+                    else:
+                        alz_zona = "Alta"
 
             filas2.append({
-                "mes":mes,"peso":peso,
-                "p10":p10,"p25":p25,"p50":p50,"p75":p75,"p90":p90,
-                "diff":diff,"zona":zona,"alerta":alerta,
-                "alzada":alzadas2.get(mes,None),"alz_zona":alz_zona
+                "mes": mes, "peso": peso,
+                "p10": p10, "p25": p25, "p50": p50, "p75": p75, "p90": p90,
+                "diff": diff, "zona": zona, "alerta": alerta,
+                "alzada": alzadas2.get(mes, None), "alz_zona": alz_zona
             })
 
-        n_f = len(filas2)
-        pct_alto = alto_cnt/n_f if n_f>0 else 0
-        pct_bajo = bajo_cnt/n_f if n_f>0 else 0
-        vals_p = [f["peso"] for f in filas2]
-        perdidas = sum(1 for i in range(1,len(vals_p))
-                       if vals_p[i]<vals_p[i-1])
-        caida = any((vals_p[i]-vals_p[i-1])/vals_p[i-1]*100<-8
-                    for i in range(1,len(vals_p)))
+        n_f      = len(filas2)
+        pct_alto = alto_cnt / n_f if n_f > 0 else 0
+        pct_bajo = bajo_cnt / n_f if n_f > 0 else 0
+        vals_p   = [f["peso"] for f in filas2]
+        perdidas = sum(1 for i in range(1, len(vals_p)) if vals_p[i] < vals_p[i - 1])
+        caida    = any((vals_p[i] - vals_p[i - 1]) / vals_p[i - 1] * 100 < -8
+                       for i in range(1, len(vals_p)))
 
-        if (perdidas>=4) or caida:
-            patron2="Patrón Irregular"; cls2="p-irregular"
-            desc2="Pérdidas de peso detectadas entre mediciones consecutivas."
-            inds=[("alert","Evaluación clínica urgente — pérdida de peso en potro en crecimiento."),
-                  ("alert","Descartar enfermedades gastrointestinales, parasitosis o estrés."),
-                  ("warn","Revisar calidad y cantidad del alimento ofrecido."),
-                  ("warn","Verificar acceso a agua limpia y comedero.")]
-        elif pct_alto>=0.60:
-            patron2="Patrón Superior"; cls2="p-superior"
-            desc2="Crecimiento consistentemente por encima del promedio del rancho."
-            inds=[("info","Crecimiento excelente — por encima del P75 en la mayoría de meses."),
-                  ("","Mantener el plan nutricional y de manejo actual."),
-                  ("warn","Vigilar condición corporal para evitar sobrepeso tardío.")]
-        elif pct_bajo>=0.60:
-            patron2="Patrón Inferior"; cls2="p-inferior"
-            desc2="Crecimiento persistentemente por debajo del rango esperado."
-            inds=[("warn","Revisar aporte energético — considerar incrementar concentrado."),
-                  ("warn","Evaluar estado de desparasitación — alta carga reduce absorción."),
-                  ("warn","Verificar disponibilidad de forraje y agua limpia."),
-                  ("","Repetir evaluación en 4 semanas tras ajuste nutricional.")]
+        if (perdidas >= 4) or caida:
+            patron2 = "Patrón Irregular"; cls2 = "p-irregular"
+            desc2   = "Pérdidas de peso detectadas entre mediciones consecutivas."
+            inds = [
+                ("alert", "Evaluación clinica urgente — perdida de peso en potro en crecimiento."),
+                ("alert", "Descartar enfermedades gastrointestinales, parasitosis o estres."),
+                ("warn",  "Revisar calidad y cantidad del alimento ofrecido."),
+                ("warn",  "Verificar acceso a agua limpia y comedero."),
+            ]
+        elif pct_alto >= 0.60:
+            patron2 = "Patrón Superior"; cls2 = "p-superior"
+            desc2   = "Crecimiento consistentemente por encima del promedio del rancho."
+            inds = [
+                ("info", "Crecimiento excelente — por encima del P75 en la mayoria de meses."),
+                ("",     "Mantener el plan nutricional y de manejo actual."),
+                ("warn", "Vigilar condicion corporal para evitar sobrepeso tardio."),
+            ]
+        elif pct_bajo >= 0.60:
+            patron2 = "Patrón Inferior"; cls2 = "p-inferior"
+            desc2   = "Crecimiento persistentemente por debajo del rango esperado."
+            inds = [
+                ("warn", "Revisar aporte energetico — considerar incrementar concentrado."),
+                ("warn", "Evaluar estado de desparasitacion — alta carga reduce absorcion."),
+                ("warn", "Verificar disponibilidad de forraje y agua limpia."),
+                ("",     "Repetir evaluacion en 4 semanas tras ajuste nutricional."),
+            ]
         else:
-            patron2="Patrón Normal"; cls2="p-normal"
-            desc2="Crecimiento dentro del rango esperado para el rancho."
-            inds=[("","Mantener el programa de manejo y alimentación actual."),
-                  ("","Continuar con pesajes mensuales para seguimiento.")]
+            patron2 = "Patrón Normal"; cls2 = "p-normal"
+            desc2   = "Crecimiento dentro del rango esperado para el rancho."
+            inds = [
+                ("", "Mantener el programa de manejo y alimentacion actual."),
+                ("", "Continuar con pesajes mensuales para seguimiento."),
+            ]
             if alertas2:
-                inds.append(("warn",f"Vigilar meses con alerta: {alertas2}."))
+                inds.append(("warn", f"Vigilar meses con alerta: {alertas2}."))
 
-        # ── Layout resultado ──────────────────────────────────
         st.markdown("<hr>", unsafe_allow_html=True)
-
         r1, r2 = st.columns([1, 2])
 
         with r1:
@@ -480,10 +470,10 @@ with tab2:
             st.markdown(f'<div style="font-size:0.83rem;color:#4a6a4a;margin-bottom:0.75rem">{desc2}</div>',
                         unsafe_allow_html=True)
 
-            ganancia = round(vals_p[-1]-vals_p[0]) if len(vals_p)>=2 else 0
-            norm_pct = round(sum(1 for f in filas2 if f["zona"]=="NORMAL")/n_f*100)
-            cls_n = "ok" if norm_pct>=60 else ("warn" if norm_pct>=40 else "bad")
-            cls_a = "" if len(alertas2)==0 else ("warn" if len(alertas2)<=2 else "bad")
+            ganancia = round(vals_p[-1] - vals_p[0]) if len(vals_p) >= 2 else 0
+            norm_pct = round(sum(1 for f in filas2 if f["zona"] == "NORMAL") / n_f * 100)
+            cls_n    = "ok" if norm_pct >= 60 else ("warn" if norm_pct >= 40 else "bad")
+            cls_a    = "" if len(alertas2) == 0 else ("warn" if len(alertas2) <= 2 else "bad")
 
             st.markdown(f"""
             <div class="stat-row">
@@ -499,67 +489,72 @@ with tab2:
             </div>
             """, unsafe_allow_html=True)
 
-            if len(alertas2)==0:
+            if len(alertas2) == 0:
                 st.markdown('<div class="ok-strip">✅ Sin alertas — crecimiento dentro del rango</div>',
                             unsafe_allow_html=True)
             else:
                 st.markdown(f'<div class="warn-strip">⚠️ Alertas en meses: {alertas2}</div>',
                             unsafe_allow_html=True)
 
-            ind_html="".join([
+            ind_html = "".join([
                 f'<div class="ind-item ind-{c if c else "ok"}">'
                 f'<div class="ind-dot"></div><span>{t}</span></div>'
-                for c,t in inds
+                for c, t in inds
             ])
-            st.markdown(f'<div class="ind-box"><div class="ind-titulo">Indicaciones clínicas</div>{ind_html}</div>',
-                        unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="ind-box"><div class="ind-titulo">Indicaciones clinicas</div>'
+                f'{ind_html}</div>',
+                unsafe_allow_html=True
+            )
 
         with r2:
-            # Gráfica peso con curva del potro
-            pesos_dict = {f["mes"]:f["peso"] for f in filas2}
-            ylim_p = (50, max(max(pesos_dict.values())+60, 520))
+            pesos_dict = {f["mes"]: f["peso"] for f in filas2}
+            ylim_p     = (50, max(max(pesos_dict.values()) + 60, 520))
             fig_p = fig_curvas(
                 sp2, C[sk2],
                 f"Peso — {nombre_d} vs. Curvas de referencia",
                 "Peso (kg)", ylim_p,
-                [6,12,18], "{:.0f} kg", 20,
+                [6, 12, 18], "{:.0f} kg", 20,
                 datos_potro=pesos_dict, nombre_potro=nombre_d
             )
-            st.pyplot(fig_p); plt.close(fig_p)
+            st.pyplot(fig_p)
+            plt.close(fig_p)
 
-            # Gráfica alzada si hay datos
-            alz_dict={m:alzadas2[m] for m in alzadas2
-                      if alzadas2[m]>0 and m>0}
-            if len(alz_dict)>=2:
+            alz_dict = {m: alzadas2[m] for m in alzadas2 if alzadas2[m] > 0 and m > 0}
+            if len(alz_dict) >= 2:
                 fig_a = fig_curvas(
                     sa2, C[sk2],
                     f"Alzada — {nombre_d} vs. Curvas de referencia",
                     "Alzada (m)", (0.85, 1.70),
-                    [6,12,18], "{:.2f} m", 0.012,
+                    [6, 12, 18], "{:.2f} m", 0.012,
                     datos_potro=alz_dict, nombre_potro=nombre_d
                 )
-                st.pyplot(fig_a); plt.close(fig_a)
+                st.pyplot(fig_a)
+                plt.close(fig_a)
 
-        # Tabla detallada
         st.markdown("<hr>", unsafe_allow_html=True)
         with st.expander("Ver evaluación detallada mes a mes"):
             df2 = pd.DataFrame([{
-                "Mes":f["mes"],"Peso real (kg)":f["peso"],
-                "P25":round(f["p25"],1),"P50":round(f["p50"],1),
-                "P75":round(f["p75"],1),
-                "vs P50":f'{f["diff"]:+.1f}%',
-                "Estado peso":f["zona"],
-                "Alzada (m)":f["alzada"] if f["alzada"] else "—",
-                "Estado alzada":f["alz_zona"] if f["alz_zona"] else "—",
+                "Mes":           f["mes"],
+                "Peso real (kg)":f["peso"],
+                "P25":           round(f["p25"], 1),
+                "P50":           round(f["p50"], 1),
+                "P75":           round(f["p75"], 1),
+                "vs P50":        f'{f["diff"]:+.1f}%',
+                "Estado peso":   f["zona"],
+                "Alzada (m)":    f["alzada"] if f["alzada"] else "—",
+                "Estado alzada": f["alz_zona"] if f["alz_zona"] else "—",
             } for f in filas2])
 
             def color_estado(v):
-                if "BAJO" in str(v):    return "background:#fff3e0;color:#92400e"
-                elif "ALTO" in str(v):  return "background:#dbeafe;color:#1e40af"
-                elif "NORMAL" in str(v):return "background:#e8f4ee;color:#1a4731"
+                if "BAJO" in str(v):
+                    return "background:#fff3e0;color:#92400e"
+                elif "ALTO" in str(v):
+                    return "background:#dbeafe;color:#1e40af"
+                elif "NORMAL" in str(v):
+                    return "background:#e8f4ee;color:#1a4731"
                 return ""
 
-            # ← CORRECCIÓN: usar .map en lugar de .applymap
             try:
                 styled = df2.style.map(color_estado, subset=["Estado peso"])
             except AttributeError:
@@ -576,57 +571,55 @@ with tab3:
     st.markdown('<div class="section-pill">🎯 Predictor de peso y alzada</div>',
                 unsafe_allow_html=True)
 
-    pc1, pc2, pc3 = st.columns([1,1,1])
+    pc1, pc2, pc3 = st.columns([1, 1, 1])
     with pc1:
-        sx3 = st.radio("Sexo:", ["Macho ♂","Hembra ♀"],
-                       horizontal=True, key="sx3")
+        sx3 = st.radio("Sexo:", ["Macho ♂", "Hembra ♀"], horizontal=True, key="sx3")
     with pc2:
         edad3 = st.slider("Edad (meses):", 1, 22, 6, key="edad3")
     with pc3:
-        alz3 = st.number_input(
-            "Alzada actual (m) — opcional",
-            min_value=0.0, max_value=2.0,
-            value=0.0, step=0.01, key="alz3",
-            help="Mejora la precisión: R²=0.9641 vs 0.9458"
-        )
+        alz3 = st.number_input("Alzada actual (m) — opcional",
+                               min_value=0.0, max_value=2.0,
+                               value=0.0, step=0.01, key="alz3",
+                               help="Mejora la precision: R2=0.9641 vs 0.9458")
 
     sk3   = "M" if "Macho" in sx3 else "H"
-    sbin3 = 1 if sk3=="M" else 0
-
+    sbin3 = 1 if sk3 == "M" else 0
     sp3   = stats_ref[f"stats_{sk3}"]
     sa3   = stats_alz[f"stats_{sk3}"]
-    ref_a3= sa3[sa3.edad_meses==edad3]
-    alz_m3= ref_a3["p50"].values[0] if len(ref_a3)>0 else 1.35
-    alz_u3= alz3 if alz3>0 else alz_m3
+    ref_a3 = sa3[sa3.edad_meses == edad3]
+    alz_m3 = ref_a3["p50"].values[0] if len(ref_a3) > 0 else 1.35
+    alz_u3 = alz3 if alz3 > 0 else alz_m3
 
-    peso3 = mod_peso.predict([[sbin3, edad3, alz_u3]])[0]
-    alzp3 = mod_alz.predict([[sbin3, edad3, peso3]])[0]
-    ref_p3= sp3[sp3.edad_meses==edad3]
+    peso3  = mod_peso.predict([[sbin3, edad3, alz_u3]])[0]
+    alzp3  = mod_alz.predict([[sbin3, edad3, peso3]])[0]
+    ref_p3 = sp3[sp3.edad_meses == edad3]
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    if alz3>0:
-        st.markdown('<div class="ok-strip">Usando modelo mejorado con alzada — R²=0.9641</div>',
+    if alz3 > 0:
+        st.markdown('<div class="ok-strip">Usando modelo mejorado con alzada — R2=0.9641</div>',
                     unsafe_allow_html=True)
     else:
         st.markdown(
             '<div style="background:#f0f9ff;border:0.5px solid #bae6fd;'
-            'border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;'
-            'color:#0c4a6e;margin-bottom:0.5rem">'
-            'Ingresa la alzada para mayor precisión</div>',
+            'border-radius:8px;padding:0.6rem 1rem;font-size:0.82rem;color:#0c4a6e;'
+            'margin-bottom:0.5rem">Ingresa la alzada para mayor precision</div>',
             unsafe_allow_html=True
         )
 
-    if len(ref_p3)>0:
-        p25r=ref_p3["p25"].values[0]
-        p50r=ref_p3["p50"].values[0]
-        p75r=ref_p3["p75"].values[0]
+    if len(ref_p3) > 0:
+        p25r = ref_p3["p25"].values[0]
+        p50r = ref_p3["p50"].values[0]
+        p75r = ref_p3["p75"].values[0]
 
-        if peso3<p25r:    pos="Inferior al rango normal"; pc_col="#92400e"; pb="#fff3e0"
-        elif peso3<=p75r: pos="Dentro del rango normal";  pc_col="#1a4731"; pb="#e8f4ee"
-        else:             pos="Superior al rango normal"; pc_col="#1e40af"; pb="#dbeafe"
+        if peso3 < p25r:
+            pos = "Inferior al rango normal"; pc_col = "#92400e"; pb = "#fff3e0"
+        elif peso3 <= p75r:
+            pos = "Dentro del rango normal";  pc_col = "#1a4731"; pb = "#e8f4ee"
+        else:
+            pos = "Superior al rango normal"; pc_col = "#1e40af"; pb = "#dbeafe"
 
-        rc1,rc2,rc3,rc4 = st.columns(4)
+        rc1, rc2, rc3, rc4 = st.columns(4)
         with rc1:
             st.markdown(f"""
             <div style="background:{pb};border:1.5px solid {pc_col};
@@ -641,72 +634,65 @@ with tab3:
               </div>
             </div>
             """, unsafe_allow_html=True)
-        with rc2: st.metric("P25 rancho", f"{p25r:.0f} kg")
-        with rc3: st.metric("P50 rancho", f"{p50r:.0f} kg")
-        with rc4: st.metric("P75 rancho", f"{p75r:.0f} kg")
+        with rc2:
+            st.metric("P25 rancho", f"{p25r:.0f} kg")
+        with rc3:
+            st.metric("P50 rancho", f"{p50r:.0f} kg")
+        with rc4:
+            st.metric("P75 rancho", f"{p75r:.0f} kg")
 
         st.markdown("")
-        if len(ref_a3)>0:
-            a25=ref_a3["p25"].values[0]
-            a50=ref_a3["p50"].values[0]
-            a75=ref_a3["p75"].values[0]
-            ra1,ra2,ra3,ra4 = st.columns(4)
-            with ra1: st.metric("Alzada predicha", f"{alzp3:.3f} m")
-            with ra2: st.metric("P25 alzada", f"{a25:.3f} m")
-            with ra3: st.metric("P50 alzada", f"{a50:.3f} m")
-            with ra4: st.metric("P75 alzada", f"{a75:.3f} m")
+        if len(ref_a3) > 0:
+            a25 = ref_a3["p25"].values[0]
+            a50 = ref_a3["p50"].values[0]
+            a75 = ref_a3["p75"].values[0]
+            ra1, ra2, ra3, ra4 = st.columns(4)
+            with ra1:
+                st.metric("Alzada predicha", f"{alzp3:.3f} m")
+            with ra2:
+                st.metric("P25 alzada", f"{a25:.3f} m")
+            with ra3:
+                st.metric("P50 alzada", f"{a50:.3f} m")
+            with ra4:
+                st.metric("P75 alzada", f"{a75:.3f} m")
 
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("**Curvas de predicción — punto marcado en la edad seleccionada**")
 
-    # Curvas machos y hembras con el punto del predictor
-    edades_g=list(range(1,23))
-    saM3=stats_alz["stats_M"]; saH3=stats_alz["stats_H"]
-    spM3=stats_ref["stats_M"]; spH3=stats_ref["stats_H"]
+    edades_g = list(range(1, 23))
+    saM3 = stats_alz["stats_M"]
+    saH3 = stats_alz["stats_H"]
+    spM3 = stats_ref["stats_M"]
+    spH3 = stats_ref["stats_H"]
 
-    aM3=[saM3[saM3.edad_meses==e]["p50"].values[0]
-         if len(saM3[saM3.edad_meses==e])>0 else 1.35 for e in edades_g]
-    aH3=[saH3[saH3.edad_meses==e]["p50"].values[0]
-         if len(saH3[saH3.edad_meses==e])>0 else 1.33 for e in edades_g]
+    aM3 = [saM3[saM3.edad_meses == e]["p50"].values[0]
+           if len(saM3[saM3.edad_meses == e]) > 0 else 1.35 for e in edades_g]
+    aH3 = [saH3[saH3.edad_meses == e]["p50"].values[0]
+           if len(saH3[saH3.edad_meses == e]) > 0 else 1.33 for e in edades_g]
+    pM3 = [mod_peso.predict([[1, e, a]])[0] for e, a in zip(edades_g, aM3)]
+    pH3 = [mod_peso.predict([[0, e, a]])[0] for e, a in zip(edades_g, aH3)]
 
-    pM3=[mod_peso.predict([[1,e,a]])[0] for e,a in zip(edades_g,aM3)]
-    pH3=[mod_peso.predict([[0,e,a]])[0] for e,a in zip(edades_g,aH3)]
-
-    # Una gráfica con ambas curvas y el punto marcado
     fig3, ax3 = plt.subplots(figsize=(12, 5))
     fig3.patch.set_facecolor("#f8faf8")
     ax3.set_facecolor("#f8faf8")
-
-    # Rangos normales
     ax3.fill_between(spM3.edad_meses, spM3.p25, spM3.p75,
                      alpha=0.12, color=C["M"], label="Rango normal Machos")
     ax3.fill_between(spH3.edad_meses, spH3.p25, spH3.p75,
                      alpha=0.12, color=C["H"], label="Rango normal Hembras")
-
-    # Curvas de predicción
-    ax3.plot(edades_g, pM3, color=C["M"], linewidth=2.2, label="Predicción Machos")
-    ax3.plot(edades_g, pH3, color=C["H"], linewidth=2.2, label="Predicción Hembras")
-
-    # Línea vertical en la edad seleccionada
-    ax3.axvline(x=edad3, color="#94a3b8", linestyle="--",
-                linewidth=1.5, alpha=0.8, label=f"Mes {edad3}")
-
-    # Punto naranja del resultado
-    ax3.scatter([edad3], [peso3], color="#e67e22", s=200,
-                zorder=7, edgecolors="white", linewidths=2.5,
-                label=f"Predicción: {peso3:.0f} kg")
-
-    # Etiqueta del punto
+    ax3.plot(edades_g, pM3, color=C["M"], linewidth=2.2, label="Prediccion Machos")
+    ax3.plot(edades_g, pH3, color=C["H"], linewidth=2.2, label="Prediccion Hembras")
+    ax3.axvline(x=edad3, color="#94a3b8", linestyle="--", linewidth=1.5,
+                alpha=0.8, label=f"Mes {edad3}")
+    ax3.scatter([edad3], [peso3], color="#e67e22", s=200, zorder=7,
+                edgecolors="white", linewidths=2.5,
+                label=f"Prediccion: {peso3:.0f} kg")
     ax3.annotate(
         f"  {peso3:.0f} kg",
-        xy=(edad3, peso3),
-        xytext=(edad3+0.8, peso3+20),
+        xy=(edad3, peso3), xytext=(edad3 + 0.8, peso3 + 20),
         fontsize=10, color="#c0392b", fontweight="700",
         arrowprops=dict(arrowstyle="->", color="#e67e22", lw=1.5),
-        bbox=dict(boxstyle="round,pad=0.35", fc="#fff3e0",
-                  ec="#e67e22", alpha=0.95)
+        bbox=dict(boxstyle="round,pad=0.35", fc="#fff3e0", ec="#e67e22", alpha=0.95)
     )
-
     ax3.set_xlabel("Edad (meses)", fontsize=11)
     ax3.set_ylabel("Peso (kg)", fontsize=11)
     ax3.set_title("Predicciones vs. rangos normales del rancho",
@@ -717,21 +703,19 @@ with tab3:
     ax3.spines["right"].set_visible(False)
     ax3.set_xlim(0.5, 22.5)
     plt.tight_layout()
-    st.pyplot(fig3); plt.close(fig3)
+    st.pyplot(fig3)
+    plt.close(fig3)
 
     with st.expander("Ver tabla completa"):
         st.dataframe(pd.DataFrame({
-            "Mes":              edades_g,
-            "Peso Machos(kg)":  [round(p) for p in pM3],
-            "Peso Hembras(kg)": [round(p) for p in pH3],
-            "Alzada Machos(m)": [round(a,3) for a in aM3],
-            "Alzada Hembras(m)":[round(a,3) for a in aH3],
+            "Mes":               edades_g,
+            "Peso Machos(kg)":   [round(p) for p in pM3],
+            "Peso Hembras(kg)":  [round(p) for p in pH3],
+            "Alzada Machos(m)":  [round(a, 3) for a in aM3],
+            "Alzada Hembras(m)": [round(a, 3) for a in aH3],
         }), use_container_width=True, hide_index=True)
 
 
-# ══════════════════════════════════════════════════════════════
-# TAB 4 — METODOLOGÍA
-# ══════════════════════════════════════════════════════════════
 # ══════════════════════════════════════════════════════════════
 # TAB 4 — COMPARACIÓN INTERNACIONAL
 # ══════════════════════════════════════════════════════════════
@@ -743,25 +727,21 @@ with tab4:
     st.markdown("""
     <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
                 padding:0.9rem 1.1rem;font-size:0.85rem;color:#2d5a3d;margin-bottom:1rem">
-        Comparación del P50 del rancho mexicano contra datos publicados en 
+        Comparacion del P50 del rancho mexicano contra datos publicados en
         tres estudios internacionales de referencia en PSI.
         Los valores de literatura corresponden a medias poblacionales.
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Datos de literatura ──
-    import pandas as pd
-
-    # Hintz et al. 1979 (Canadá)
-    hintz_m = {0:55,1:98,2:132,3:170,4:195,5:221,6:245,7:270,
-               8:283,9:310,10:318,11:334,12:345,13:359,14:373,15:392,16:415,17:428,18:446}
-    hintz_h = {0:54,1:97,2:131,3:166,4:192,5:212,6:236,7:260,
-               8:272,9:296,10:304,11:320,12:329,13:343,14:355,15:375,16:392,17:406,18:424}
+    # Datos de literatura
+    hintz_m  = {0:55,1:98,2:132,3:170,4:195,5:221,6:245,7:270,
+                8:283,9:310,10:318,11:334,12:345,13:359,14:373,15:392,16:415,17:428,18:446}
+    hintz_h  = {0:54,1:97,2:131,3:166,4:192,5:212,6:236,7:260,
+                8:272,9:296,10:304,11:320,12:329,13:343,14:355,15:375,16:392,17:406,18:424}
     hintz_am = {0:100.6,1:110.8,2:118.5,3:125.2,4:128.9,5:131.6,6:134.6,
                 7:137.1,8:139.5,9:141.8,10:142.6,11:144.4,12:145.9,13:147.2,
                 14:148.8,15:150.2,16:151.8,17:152.8,18:154.5}
 
-    # Brown-Douglas & Pagan 2009 — Kentucky y Mundial (solo puntos disponibles)
     ker_meses  = [0,    1,    6,    12,   18]
     ker_ky     = [67.5, 99.3, 250.7,353.3,453.9]
     ker_world  = [66.9, 98.6, 247.1,350.7,444.9]
@@ -769,36 +749,32 @@ with tab4:
     ker_alz_ky = [105.7,112.6,135.9,147.8,154.7]
     ker_alz_w  = [106.1,112.0,135.0,147.1,153.8]
 
-    # De Castro et al. 2021 — Brasil
-    dc_meses  = [0,    6,    12,   18]
-    dc_m      = [53.8, 243.8,337.2,432.7]
-    dc_h      = [56.6, 248.2,343.6,445.5]
-    dc_alz_m  = [102.2,135.8,146.5,154.2]
-    dc_alz_h  = [103.6,136.4,147.6,155.5]
+    dc_meses = [0,    6,    12,   18]
+    dc_m     = [53.8, 243.8,337.2,432.7]
+    dc_h     = [56.6, 248.2,343.6,445.5]
+    dc_alz_m = [102.2,135.8,146.5,154.2]
+    dc_alz_h = [103.6,136.4,147.6,155.5]
 
-    # Rancho MX — P50
-    mx_m_p50 = {0:56,1:99,2:137,3:173,4:207,5:233,6:246,7:273,8:294,9:311,
-                10:322,11:335,12:347,13:360,14:379,15:397,16:412,17:430,18:428}
-    mx_h_p50 = {0:56,1:101,2:134,3:169,4:200,5:228,6:245,7:266,8:283,9:298,
-                10:311,11:322,12:332,13:346,14:365,15:384,16:404,17:435,18:444}
+    mx_m_p50  = {0:56,1:99,2:137,3:173,4:207,5:233,6:246,7:273,8:294,9:311,
+                 10:322,11:335,12:347,13:360,14:379,15:397,16:412,17:430,18:428}
+    mx_h_p50  = {0:56,1:101,2:134,3:169,4:200,5:228,6:245,7:266,8:283,9:298,
+                 10:311,11:322,12:332,13:346,14:365,15:384,16:404,17:435,18:444}
     mx_am_p50 = {1:111,2:118,3:123,4:128,5:131,6:134,7:135,8:137,9:139,
                  10:141,11:143,12:144,13:146,14:148,15:149,16:150,17:152,18:153}
     mx_ah_p50 = {1:109,2:117,3:122,4:127,5:130,6:133,7:134,8:136,9:138,
                  10:140,11:142,12:144,13:145,14:147,15:148,16:150,17:151,18:152}
 
     COL_COMP = {
-        'MX':    '#1a4731',
-        'Hintz': '#e74c3c',
-        'KY':    '#2980b9',
-        'World': '#8e44ad',
-        'Aus':   '#16a085',
-        'BR':    '#f39c12',
+        "MX":    "#1a4731",
+        "Hintz": "#e74c3c",
+        "KY":    "#2980b9",
+        "World": "#8e44ad",
+        "Aus":   "#16a085",
+        "BR":    "#f39c12",
     }
 
-    # Selector
-    var_comp = st.radio("Variable a comparar:",
-                        ["Peso (kg)", "Alzada (cm)"],
-                        horizontal=True, key="var_comp")
+    var_comp  = st.radio("Variable a comparar:", ["Peso (kg)", "Alzada (cm)"],
+                         horizontal=True, key="var_comp")
     sexo_comp = st.radio("Sexo:", ["Machos", "Hembras"],
                          horizontal=True, key="sexo_comp")
 
@@ -808,150 +784,134 @@ with tab4:
 
     if "Peso" in var_comp:
         if sexo_comp == "Machos":
-            # Rancho MX
             ax_c.plot(list(mx_m_p50.keys()), list(mx_m_p50.values()),
-                      color=COL_COMP['MX'], linewidth=3.5, marker='o',
-                      markersize=5, label='Rancho MX — P50 (n=111)', zorder=6)
-            # Hintz
+                      color=COL_COMP["MX"], linewidth=3.5, marker="o",
+                      markersize=5, label="Rancho MX — P50 (n=111)", zorder=6)
             ax_c.plot(list(hintz_m.keys()), list(hintz_m.values()),
-                      color=COL_COMP['Hintz'], linewidth=2, linestyle='--',
-                      alpha=0.85, label='Hintz et al. 1979 — Canada')
-            # KER
-            ax_c.plot(ker_meses, ker_ky,
-                      color=COL_COMP['KY'], linewidth=2, linestyle='-.',
-                      marker='s', markersize=7, label='KER — Kentucky (Pagan 2009)')
-            ax_c.plot(ker_meses, ker_aus,
-                      color=COL_COMP['Aus'], linewidth=1.5, linestyle=':',
-                      marker='^', markersize=6, label='KER — Australia (Pagan 2009)')
-            ax_c.plot(ker_meses, ker_world,
-                      color=COL_COMP['World'], linewidth=2, linestyle='-.',
-                      alpha=0.8, label='KER — Promedio mundial')
-            # Brasil
-            ax_c.plot(dc_meses, dc_m,
-                      color=COL_COMP['BR'], linewidth=2,
-                      marker='D', markersize=8, label='De Castro et al. 2021 — Brasil')
+                      color=COL_COMP["Hintz"], linewidth=2, linestyle="--",
+                      alpha=0.85, label="Hintz et al. 1979 — Canada")
+            ax_c.plot(ker_meses, ker_ky, color=COL_COMP["KY"], linewidth=2,
+                      linestyle="-.", marker="s", markersize=7,
+                      label="KER — Kentucky (Pagan 2009)")
+            ax_c.plot(ker_meses, ker_aus, color=COL_COMP["Aus"], linewidth=1.5,
+                      linestyle=":", marker="^", markersize=6,
+                      label="KER — Australia (Pagan 2009)")
+            ax_c.plot(ker_meses, ker_world, color=COL_COMP["World"], linewidth=2,
+                      linestyle="-.", alpha=0.8, label="KER — Promedio mundial")
+            ax_c.plot(dc_meses, dc_m, color=COL_COMP["BR"], linewidth=2,
+                      marker="D", markersize=8, label="De Castro et al. 2021 — Brasil")
         else:
             ax_c.plot(list(mx_h_p50.keys()), list(mx_h_p50.values()),
-                      color=COL_COMP['MX'], linewidth=3.5, marker='o',
-                      markersize=5, label='Rancho MX — P50 (n=106)', zorder=6)
+                      color=COL_COMP["MX"], linewidth=3.5, marker="o",
+                      markersize=5, label="Rancho MX — P50 (n=106)", zorder=6)
             ax_c.plot(list(hintz_h.keys()), list(hintz_h.values()),
-                      color=COL_COMP['Hintz'], linewidth=2, linestyle='--',
-                      alpha=0.85, label='Hintz et al. 1979 — Canada')
-            ax_c.plot(ker_meses, ker_ky,
-                      color=COL_COMP['KY'], linewidth=2, linestyle='-.',
-                      marker='s', markersize=7, label='KER — Kentucky (Pagan 2009)')
-            ax_c.plot(ker_meses, ker_world,
-                      color=COL_COMP['World'], linewidth=2, linestyle='-.',
-                      alpha=0.8, label='KER — Promedio mundial')
-            ax_c.plot(dc_meses, dc_h,
-                      color=COL_COMP['BR'], linewidth=2,
-                      marker='D', markersize=8, label='De Castro et al. 2021 — Brasil')
-
+                      color=COL_COMP["Hintz"], linewidth=2, linestyle="--",
+                      alpha=0.85, label="Hintz et al. 1979 — Canada")
+            ax_c.plot(ker_meses, ker_ky, color=COL_COMP["KY"], linewidth=2,
+                      linestyle="-.", marker="s", markersize=7,
+                      label="KER — Kentucky (Pagan 2009)")
+            ax_c.plot(ker_meses, ker_world, color=COL_COMP["World"], linewidth=2,
+                      linestyle="-.", alpha=0.8, label="KER — Promedio mundial")
+            ax_c.plot(dc_meses, dc_h, color=COL_COMP["BR"], linewidth=2,
+                      marker="D", markersize=8, label="De Castro et al. 2021 — Brasil")
         ax_c.set_ylabel("Peso (kg)", fontsize=11)
         titulo_var = "Peso corporal"
     else:
         if sexo_comp == "Machos":
             ax_c.plot(list(mx_am_p50.keys()), list(mx_am_p50.values()),
-                      color=COL_COMP['MX'], linewidth=3.5, marker='o',
-                      markersize=5, label='Rancho MX — P50', zorder=6)
+                      color=COL_COMP["MX"], linewidth=3.5, marker="o",
+                      markersize=5, label="Rancho MX — P50", zorder=6)
             ax_c.plot(list(hintz_am.keys()), list(hintz_am.values()),
-                      color=COL_COMP['Hintz'], linewidth=2, linestyle='--',
-                      alpha=0.85, label='Hintz et al. 1979 — Canada')
-            ax_c.plot(ker_meses, ker_alz_ky,
-                      color=COL_COMP['KY'], linewidth=2, linestyle='-.',
-                      marker='s', markersize=7, label='KER — Kentucky (Pagan 2009)')
-            ax_c.plot(ker_meses, ker_alz_w,
-                      color=COL_COMP['World'], linewidth=2, linestyle='-.',
-                      alpha=0.8, label='KER — Promedio mundial')
-            ax_c.plot(dc_meses, dc_alz_m,
-                      color=COL_COMP['BR'], linewidth=2,
-                      marker='D', markersize=8, label='De Castro et al. 2021 — Brasil')
+                      color=COL_COMP["Hintz"], linewidth=2, linestyle="--",
+                      alpha=0.85, label="Hintz et al. 1979 — Canada")
+            ax_c.plot(ker_meses, ker_alz_ky, color=COL_COMP["KY"], linewidth=2,
+                      linestyle="-.", marker="s", markersize=7,
+                      label="KER — Kentucky (Pagan 2009)")
+            ax_c.plot(ker_meses, ker_alz_w, color=COL_COMP["World"], linewidth=2,
+                      linestyle="-.", alpha=0.8, label="KER — Promedio mundial")
+            ax_c.plot(dc_meses, dc_alz_m, color=COL_COMP["BR"], linewidth=2,
+                      marker="D", markersize=8, label="De Castro et al. 2021 — Brasil")
         else:
             ax_c.plot(list(mx_ah_p50.keys()), list(mx_ah_p50.values()),
-                      color=COL_COMP['MX'], linewidth=3.5, marker='o',
-                      markersize=5, label='Rancho MX — P50', zorder=6)
+                      color=COL_COMP["MX"], linewidth=3.5, marker="o",
+                      markersize=5, label="Rancho MX — P50", zorder=6)
             ax_c.plot(list(hintz_am.keys()), list(hintz_am.values()),
-                      color=COL_COMP['Hintz'], linewidth=2, linestyle='--',
-                      alpha=0.85, label='Hintz et al. 1979 — Canada (machos)')
-            ax_c.plot(ker_meses, ker_alz_ky,
-                      color=COL_COMP['KY'], linewidth=2, linestyle='-.',
-                      marker='s', markersize=7, label='KER — Kentucky (Pagan 2009)')
-            ax_c.plot(ker_meses, ker_alz_w,
-                      color=COL_COMP['World'], linewidth=2, linestyle='-.',
-                      alpha=0.8, label='KER — Promedio mundial')
-            ax_c.plot(dc_meses, dc_alz_h,
-                      color=COL_COMP['BR'], linewidth=2,
-                      marker='D', markersize=8, label='De Castro et al. 2021 — Brasil')
-
+                      color=COL_COMP["Hintz"], linewidth=2, linestyle="--",
+                      alpha=0.85, label="Hintz et al. 1979 — Canada (machos)")
+            ax_c.plot(ker_meses, ker_alz_ky, color=COL_COMP["KY"], linewidth=2,
+                      linestyle="-.", marker="s", markersize=7,
+                      label="KER — Kentucky (Pagan 2009)")
+            ax_c.plot(ker_meses, ker_alz_w, color=COL_COMP["World"], linewidth=2,
+                      linestyle="-.", alpha=0.8, label="KER — Promedio mundial")
+            ax_c.plot(dc_meses, dc_alz_h, color=COL_COMP["BR"], linewidth=2,
+                      marker="D", markersize=8, label="De Castro et al. 2021 — Brasil")
         ax_c.set_ylabel("Alzada (cm)", fontsize=11)
         titulo_var = "Alzada a la cruz"
 
     ax_c.set_xlabel("Edad (meses)", fontsize=11)
     ax_c.set_title(
         f"{titulo_var} — {sexo_comp} PSI\n"
-        f"Rancho mexicano 2015–2025 vs literatura internacional",
-        fontsize=12, fontweight='700'
+        f"Rancho mexicano 2015-2025 vs literatura internacional",
+        fontsize=12, fontweight="700"
     )
-    ax_c.legend(fontsize=9, framealpha=0.9, edgecolor='#d4e8d8')
-    ax_c.grid(True, alpha=0.15, linestyle='--')
-    ax_c.spines['top'].set_visible(False)
-    ax_c.spines['right'].set_visible(False)
+    ax_c.legend(fontsize=9, framealpha=0.9, edgecolor="#d4e8d8")
+    ax_c.grid(True, alpha=0.15, linestyle="--")
+    ax_c.spines["top"].set_visible(False)
+    ax_c.spines["right"].set_visible(False)
     ax_c.set_xlim(-0.5, 22)
     plt.tight_layout()
     st.pyplot(fig_c)
     plt.close(fig_c)
 
-    # ── Tabla comparativa en puntos clave ──
+    # Tabla comparativa
     st.markdown("<hr>", unsafe_allow_html=True)
     st.subheader("Tabla comparativa en puntos clave")
 
-   meses_k = [0, 6, 12, 18]
+    meses_k = [0, 6, 12, 18]
 
     def ker_val(lista, meses_lista, meses_target):
         d = dict(zip(meses_lista, lista))
-        return [round(d[m], 1) if m in d else '—' for m in meses_target]
+        return [round(d[m], 1) if m in d else "—" for m in meses_target]
 
     if "Peso" in var_comp and sexo_comp == "Machos":
         data_tab = {
-            "Edad (meses)":     meses_k,
-            "Rancho MX (kg)":   [mx_m_p50.get(m,'—')  for m in meses_k],
-            "Hintz 1979 Canada":[hintz_m.get(m,'—')    for m in meses_k],
-            "KER Kentucky":     ker_val(ker_ky,   ker_meses, meses_k),
-            "KER Mundial":      ker_val(ker_world, ker_meses, meses_k),
-            "Brasil 2021":      ker_val(dc_m,      dc_meses,  meses_k),
+            "Edad (meses)":      meses_k,
+            "Rancho MX (kg)":    [mx_m_p50.get(m, "—")  for m in meses_k],
+            "Hintz 1979 Canada": [hintz_m.get(m, "—")   for m in meses_k],
+            "KER Kentucky":      ker_val(ker_ky,    ker_meses, meses_k),
+            "KER Mundial":       ker_val(ker_world,  ker_meses, meses_k),
+            "Brasil 2021":       ker_val(dc_m,       dc_meses,  meses_k),
         }
     elif "Peso" in var_comp and sexo_comp == "Hembras":
         data_tab = {
-            "Edad (meses)":     meses_k,
-            "Rancho MX (kg)":   [mx_h_p50.get(m,'—')  for m in meses_k],
-            "Hintz 1979 Canada":[hintz_h.get(m,'—')    for m in meses_k],
-            "KER Kentucky":     ker_val(ker_ky,   ker_meses, meses_k),
-            "KER Mundial":      ker_val(ker_world, ker_meses, meses_k),
-            "Brasil 2021":      ker_val(dc_h,      dc_meses,  meses_k),
+            "Edad (meses)":      meses_k,
+            "Rancho MX (kg)":    [mx_h_p50.get(m, "—")  for m in meses_k],
+            "Hintz 1979 Canada": [hintz_h.get(m, "—")   for m in meses_k],
+            "KER Kentucky":      ker_val(ker_ky,    ker_meses, meses_k),
+            "KER Mundial":       ker_val(ker_world,  ker_meses, meses_k),
+            "Brasil 2021":       ker_val(dc_h,       dc_meses,  meses_k),
         }
     elif "Alzada" in var_comp and sexo_comp == "Machos":
         data_tab = {
-            "Edad (meses)":     meses_k,
-            "Rancho MX (cm)":   [mx_am_p50.get(m,'—') for m in meses_k],
-            "Hintz 1979 Canada":[hintz_am.get(m,'—')   for m in meses_k],
-            "KER Kentucky":     ker_val(ker_alz_ky, ker_meses, meses_k),
-            "KER Mundial":      ker_val(ker_alz_w,  ker_meses, meses_k),
-            "Brasil 2021":      ker_val(dc_alz_m,   dc_meses,  meses_k),
+            "Edad (meses)":      meses_k,
+            "Rancho MX (cm)":    [mx_am_p50.get(m, "—") for m in meses_k],
+            "Hintz 1979 Canada": [hintz_am.get(m, "—")  for m in meses_k],
+            "KER Kentucky":      ker_val(ker_alz_ky, ker_meses, meses_k),
+            "KER Mundial":       ker_val(ker_alz_w,  ker_meses, meses_k),
+            "Brasil 2021":       ker_val(dc_alz_m,   dc_meses,  meses_k),
         }
     else:
         data_tab = {
-            "Edad (meses)":     meses_k,
-            "Rancho MX (cm)":   [mx_ah_p50.get(m,'—') for m in meses_k],
-            "Hintz 1979 Canada":[hintz_am.get(m,'—')   for m in meses_k],
-            "KER Kentucky":     ker_val(ker_alz_ky, ker_meses, meses_k),
-            "KER Mundial":      ker_val(ker_alz_w,  ker_meses, meses_k),
-            "Brasil 2021":      ker_val(dc_alz_h,   dc_meses,  meses_k),
+            "Edad (meses)":      meses_k,
+            "Rancho MX (cm)":    [mx_ah_p50.get(m, "—") for m in meses_k],
+            "Hintz 1979 Canada": [hintz_am.get(m, "—")  for m in meses_k],
+            "KER Kentucky":      ker_val(ker_alz_ky, ker_meses, meses_k),
+            "KER Mundial":       ker_val(ker_alz_w,  ker_meses, meses_k),
+            "Brasil 2021":       ker_val(dc_alz_h,   dc_meses,  meses_k),
         }
 
-    st.dataframe(pd.DataFrame(data_tab),
-                 use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(data_tab), use_container_width=True, hide_index=True)
 
-    # ── Interpretación automática ──
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("""
     <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
@@ -960,7 +920,7 @@ with tab4:
         Al <strong>nacimiento</strong>, el rancho mexicano muestra pesos similares a
         Canada (Hintz, 1979) y Brasil (De Castro, 2021), pero inferiores a Kentucky y
         el promedio mundial KER. Esto es consistente con diferencias geneticas y de
-        seleccion por industria hípica (Pagan, 2025).<br><br>
+        seleccion por industria hipica (Pagan, 2025).<br><br>
         A los <strong>6 meses</strong>, las diferencias se reducen a menos de 5 kg en
         todas las poblaciones, sugiriendo que el manejo nutricional postnatal del rancho
         es comparable al estandar internacional.<br><br>
@@ -969,41 +929,47 @@ with tab4:
         vendidos al hipodromo antes de completar el ciclo de preparacion de yearling.
     </div>
     """, unsafe_allow_html=True)
-with tab4:
-    st.markdown('<div class="section-pill">ℹ️ Metodología y referencias</div>',
+
+
+# ══════════════════════════════════════════════════════════════
+# TAB 5 — METODOLOGÍA
+# ══════════════════════════════════════════════════════════════
+
+with tab5:
+    st.markdown('<div class="section-pill">ℹ️ Metodologia y referencias</div>',
                 unsafe_allow_html=True)
 
     m1, m2 = st.columns(2)
     with m1:
         st.markdown("#### Base de datos")
         st.markdown("""
-        Registros zootécnicos reales de un rancho PSI mexicano (2015–2025).
+        Registros zootecnicos reales de un rancho PSI mexicano (2015-2025).
         Dataset de **217 animales** con **4,175 mediciones** de peso y
         **3,981 de alzada**. Completitud del 100% en alzada.
         El 89.4% de los animales tienen peso al nacer registrado.
         """)
-        st.markdown("#### Estadística aplicada")
+        st.markdown("#### Estadistica aplicada")
         st.markdown("""
-        - Percentiles P10–P90 por edad (0–22 meses) y sexo
-        - Regresión polinomial grado 3 (sexo + edad + alzada → peso)
-        - Validación train/test 80%/20% (random_state=42)
-        - Clasificador basado en criterios clínicos equinos
-        - Correlación peso-alzada: r=0.9666 (Pearson, p<0.001)
+        - Percentiles P10-P90 por edad (0-22 meses) y sexo
+        - Regresion polinomial grado 3 (sexo + edad + alzada a peso)
+        - Validacion train/test 80%/20% (random_state=42)
+        - Clasificador basado en criterios clinicos equinos
+        - Correlacion peso-alzada: r=0.9666 (Pearson, p<0.001)
         """)
 
     with m2:
-        st.markdown("#### Métricas de validación")
+        st.markdown("#### Metricas de validacion")
         st.dataframe(pd.DataFrame({
-            "Modelo":  ["Peso (con alzada)","Peso (sin alzada)","Alzada"],
-            "R²":      ["0.9641","0.9458","0.9552"],
-            "MAE":     ["15.1 kg","19.6 kg","2.0 cm"],
+            "Modelo": ["Peso (con alzada)", "Peso (sin alzada)", "Alzada"],
+            "R2":     ["0.9641",            "0.9458",            "0.9552"],
+            "MAE":    ["15.1 kg",           "19.6 kg",           "2.0 cm"],
         }), use_container_width=True, hide_index=True)
 
         st.markdown("#### Limitaciones")
         st.markdown("""
-        - Curvas específicas para esta población y rancho
-        - No generalizable sin validación externa
-        - Sin variables de alimentación ni sanidad
+        - Curvas especificas para esta poblacion y rancho
+        - No generalizable sin validacion externa
+        - Sin variables de alimentacion ni sanidad
         - 10.6% sin peso al nacer (cohorte 2015)
         """)
 
@@ -1011,18 +977,19 @@ with tab4:
     st.markdown("#### Referencias (Vancouver)")
     st.markdown("""
     1. Hintz HF et al. Growth rate of thoroughbreds. *J Anim Sci.* 1979;48(3):480-487.
-    2. National Research Council. *Nutrient Requirements of Horses.* 6th ed. NAP; 2007.
-    3. WHO MGRS Group. *WHO child growth standards.* WHO; 2006.
-    4. James G et al. *An Introduction to Statistical Learning.* 2nd ed. Springer; 2021.
-    5. Dohoo I et al. *Veterinary Epidemiologic Research.* 2nd ed. VER Inc; 2009.
-    6. Staniar WB et al. Growth trajectory of thoroughbreds. *J Anim Sci.* 2004;82(8):2352-62.
+    2. Brown-Douglas CG, Pagan JD. Body weight, wither height and growth rates in Thoroughbreds. *Adv Eq Nutr IV.* 2009:213-220.
+    3. De Castro LL et al. Body development from birth to 18 months of Thoroughbred foals in Brazil. *Int J Plant Anim Environ Sci.* 2021;11(3):352-362.
+    4. National Research Council. *Nutrient Requirements of Horses.* 6th ed. NAP; 2007.
+    5. WHO MGRS Group. *WHO child growth standards.* WHO; 2006.
+    6. James G et al. *An Introduction to Statistical Learning.* 2nd ed. Springer; 2021.
+    7. Dohoo I et al. *Veterinary Epidemiologic Research.* 2nd ed. VER Inc; 2009.
     """)
 
     st.markdown("""
     <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
                 padding:0.8rem 1rem;font-size:0.83rem;color:#2d5a3d;margin-top:0.5rem">
-        <strong>Citación sugerida:</strong> [Autor]. CreciPSI: Sistema de monitoreo
-        inteligente de crecimiento en potros Pura Sangre Inglés mediante inteligencia
+        <strong>Citacion sugerida:</strong> [Autor]. CreciPSI: Sistema de monitoreo
+        inteligente de crecimiento en potros Pura Sangre Ingles mediante inteligencia
         artificial. FMVZ-UNAM. Diplomado en IA en Salud Global. 2026.
     </div>
     """, unsafe_allow_html=True)
