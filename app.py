@@ -1159,7 +1159,7 @@ El reporte debe ser profesional, en español, con terminología veterinaria apro
 
                 url = (
                     "https://generativelanguage.googleapis.com/v1beta/models/"
-                    f"gemini-1.5-flash:generateContent?key={api_key}"
+                    f"gemini-2.0-flash:generateContent?key={api_key}"
                 )
 
                 payload = {
