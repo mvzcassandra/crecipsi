@@ -1,5 +1,5 @@
 # ══════════════════════════════════════════════════════════════
-# CreciPSI v5.2 — Versión completa corregida
+# CreciPSI v5.3 — Con Groq (LLaMA 3.3 70B) limpio
 # FMVZ-UNAM | Diplomado IA en Salud Global 2025-2026
 # ══════════════════════════════════════════════════════════════
 
@@ -114,7 +114,6 @@ except Exception as e:
 
 C = {"M": "#1a4731", "H": "#831843"}
 
-
 # ── HEADER ───────────────────────────────────────────────────
 st.markdown("""
 <div class="header">
@@ -140,7 +139,6 @@ st.markdown("""
   <div class="metric-box"><div class="mv">15 kg</div><div class="ml">Error medio</div></div>
 </div>
 """, unsafe_allow_html=True)
-
 
 # ── TABS ─────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -430,7 +428,7 @@ with tab2:
             patron2 = "Patrón Irregular"; cls2 = "p-irregular"
             desc2   = "Pérdidas de peso detectadas entre mediciones consecutivas."
             inds = [
-                ("alert", "Evaluación clinica urgente — perdida de peso en potro en crecimiento."),
+                ("alert", "Evaluacion clinica urgente — perdida de peso en potro en crecimiento."),
                 ("alert", "Descartar enfermedades gastrointestinales, parasitosis o estres."),
                 ("warn",  "Revisar calidad y cantidad del alimento ofrecido."),
                 ("warn",  "Verificar acceso a agua limpia y comedero."),
@@ -730,11 +728,9 @@ with tab4:
                 padding:0.9rem 1.1rem;font-size:0.85rem;color:#2d5a3d;margin-bottom:1rem">
         Comparacion del P50 del rancho mexicano contra datos publicados en
         tres estudios internacionales de referencia en PSI.
-        Los valores de literatura corresponden a medias poblacionales.
     </div>
     """, unsafe_allow_html=True)
 
-    # Datos de literatura
     hintz_m  = {0:55,1:98,2:132,3:170,4:195,5:221,6:245,7:270,
                 8:283,9:310,10:318,11:334,12:345,13:359,14:373,15:392,16:415,17:428,18:446}
     hintz_h  = {0:54,1:97,2:131,3:166,4:192,5:212,6:236,7:260,
@@ -742,20 +738,17 @@ with tab4:
     hintz_am = {0:100.6,1:110.8,2:118.5,3:125.2,4:128.9,5:131.6,6:134.6,
                 7:137.1,8:139.5,9:141.8,10:142.6,11:144.4,12:145.9,13:147.2,
                 14:148.8,15:150.2,16:151.8,17:152.8,18:154.5}
-
-    ker_meses  = [0,    1,    6,    12,   18]
-    ker_ky     = [67.5, 99.3, 250.7,353.3,453.9]
-    ker_world  = [66.9, 98.6, 247.1,350.7,444.9]
-    ker_aus    = [69.6, 102.4,251.4,357.8,460.7]
-    ker_alz_ky = [105.7,112.6,135.9,147.8,154.7]
-    ker_alz_w  = [106.1,112.0,135.0,147.1,153.8]
-
-    dc_meses = [0,    6,    12,   18]
-    dc_m     = [53.8, 243.8,337.2,432.7]
-    dc_h     = [56.6, 248.2,343.6,445.5]
-    dc_alz_m = [102.2,135.8,146.5,154.2]
-    dc_alz_h = [103.6,136.4,147.6,155.5]
-
+    ker_meses  = [0, 1, 6, 12, 18]
+    ker_ky     = [67.5, 99.3, 250.7, 353.3, 453.9]
+    ker_world  = [66.9, 98.6, 247.1, 350.7, 444.9]
+    ker_aus    = [69.6, 102.4, 251.4, 357.8, 460.7]
+    ker_alz_ky = [105.7, 112.6, 135.9, 147.8, 154.7]
+    ker_alz_w  = [106.1, 112.0, 135.0, 147.1, 153.8]
+    dc_meses = [0, 6, 12, 18]
+    dc_m     = [53.8, 243.8, 337.2, 432.7]
+    dc_h     = [56.6, 248.2, 343.6, 445.5]
+    dc_alz_m = [102.2, 135.8, 146.5, 154.2]
+    dc_alz_h = [103.6, 136.4, 147.6, 155.5]
     mx_m_p50  = {0:56,1:99,2:137,3:173,4:207,5:233,6:246,7:273,8:294,9:311,
                  10:322,11:335,12:347,13:360,14:379,15:397,16:412,17:430,18:428}
     mx_h_p50  = {0:56,1:101,2:134,3:169,4:200,5:228,6:245,7:266,8:283,9:298,
@@ -764,15 +757,8 @@ with tab4:
                  10:141,11:143,12:144,13:146,14:148,15:149,16:150,17:152,18:153}
     mx_ah_p50 = {1:109,2:117,3:122,4:127,5:130,6:133,7:134,8:136,9:138,
                  10:140,11:142,12:144,13:145,14:147,15:148,16:150,17:151,18:152}
-
-    COL_COMP = {
-        "MX":    "#1a4731",
-        "Hintz": "#e74c3c",
-        "KY":    "#2980b9",
-        "World": "#8e44ad",
-        "Aus":   "#16a085",
-        "BR":    "#f39c12",
-    }
+    COL_COMP = {"MX":"#1a4731","Hintz":"#e74c3c","KY":"#2980b9",
+                "World":"#8e44ad","Aus":"#16a085","BR":"#f39c12"}
 
     var_comp  = st.radio("Variable a comparar:", ["Peso (kg)", "Alzada (cm)"],
                          horizontal=True, key="var_comp")
@@ -786,31 +772,28 @@ with tab4:
     if "Peso" in var_comp:
         if sexo_comp == "Machos":
             ax_c.plot(list(mx_m_p50.keys()), list(mx_m_p50.values()),
-                      color=COL_COMP["MX"], linewidth=3.5, marker="o",
-                      markersize=5, label="Rancho MX — P50 (n=111)", zorder=6)
+                      color=COL_COMP["MX"], linewidth=3.5, marker="o", markersize=5,
+                      label="Rancho MX — P50 (n=111)", zorder=6)
             ax_c.plot(list(hintz_m.keys()), list(hintz_m.values()),
                       color=COL_COMP["Hintz"], linewidth=2, linestyle="--",
                       alpha=0.85, label="Hintz et al. 1979 — Canada")
             ax_c.plot(ker_meses, ker_ky, color=COL_COMP["KY"], linewidth=2,
-                      linestyle="-.", marker="s", markersize=7,
-                      label="KER — Kentucky (Pagan 2009)")
+                      linestyle="-.", marker="s", markersize=7, label="KER — Kentucky (Pagan 2009)")
             ax_c.plot(ker_meses, ker_aus, color=COL_COMP["Aus"], linewidth=1.5,
-                      linestyle=":", marker="^", markersize=6,
-                      label="KER — Australia (Pagan 2009)")
+                      linestyle=":", marker="^", markersize=6, label="KER — Australia (Pagan 2009)")
             ax_c.plot(ker_meses, ker_world, color=COL_COMP["World"], linewidth=2,
                       linestyle="-.", alpha=0.8, label="KER — Promedio mundial")
             ax_c.plot(dc_meses, dc_m, color=COL_COMP["BR"], linewidth=2,
                       marker="D", markersize=8, label="De Castro et al. 2021 — Brasil")
         else:
             ax_c.plot(list(mx_h_p50.keys()), list(mx_h_p50.values()),
-                      color=COL_COMP["MX"], linewidth=3.5, marker="o",
-                      markersize=5, label="Rancho MX — P50 (n=106)", zorder=6)
+                      color=COL_COMP["MX"], linewidth=3.5, marker="o", markersize=5,
+                      label="Rancho MX — P50 (n=106)", zorder=6)
             ax_c.plot(list(hintz_h.keys()), list(hintz_h.values()),
                       color=COL_COMP["Hintz"], linewidth=2, linestyle="--",
                       alpha=0.85, label="Hintz et al. 1979 — Canada")
             ax_c.plot(ker_meses, ker_ky, color=COL_COMP["KY"], linewidth=2,
-                      linestyle="-.", marker="s", markersize=7,
-                      label="KER — Kentucky (Pagan 2009)")
+                      linestyle="-.", marker="s", markersize=7, label="KER — Kentucky (Pagan 2009)")
             ax_c.plot(ker_meses, ker_world, color=COL_COMP["World"], linewidth=2,
                       linestyle="-.", alpha=0.8, label="KER — Promedio mundial")
             ax_c.plot(dc_meses, dc_h, color=COL_COMP["BR"], linewidth=2,
@@ -820,28 +803,26 @@ with tab4:
     else:
         if sexo_comp == "Machos":
             ax_c.plot(list(mx_am_p50.keys()), list(mx_am_p50.values()),
-                      color=COL_COMP["MX"], linewidth=3.5, marker="o",
-                      markersize=5, label="Rancho MX — P50", zorder=6)
+                      color=COL_COMP["MX"], linewidth=3.5, marker="o", markersize=5,
+                      label="Rancho MX — P50", zorder=6)
             ax_c.plot(list(hintz_am.keys()), list(hintz_am.values()),
                       color=COL_COMP["Hintz"], linewidth=2, linestyle="--",
                       alpha=0.85, label="Hintz et al. 1979 — Canada")
             ax_c.plot(ker_meses, ker_alz_ky, color=COL_COMP["KY"], linewidth=2,
-                      linestyle="-.", marker="s", markersize=7,
-                      label="KER — Kentucky (Pagan 2009)")
+                      linestyle="-.", marker="s", markersize=7, label="KER — Kentucky (Pagan 2009)")
             ax_c.plot(ker_meses, ker_alz_w, color=COL_COMP["World"], linewidth=2,
                       linestyle="-.", alpha=0.8, label="KER — Promedio mundial")
             ax_c.plot(dc_meses, dc_alz_m, color=COL_COMP["BR"], linewidth=2,
                       marker="D", markersize=8, label="De Castro et al. 2021 — Brasil")
         else:
             ax_c.plot(list(mx_ah_p50.keys()), list(mx_ah_p50.values()),
-                      color=COL_COMP["MX"], linewidth=3.5, marker="o",
-                      markersize=5, label="Rancho MX — P50", zorder=6)
+                      color=COL_COMP["MX"], linewidth=3.5, marker="o", markersize=5,
+                      label="Rancho MX — P50", zorder=6)
             ax_c.plot(list(hintz_am.keys()), list(hintz_am.values()),
                       color=COL_COMP["Hintz"], linewidth=2, linestyle="--",
                       alpha=0.85, label="Hintz et al. 1979 — Canada (machos)")
             ax_c.plot(ker_meses, ker_alz_ky, color=COL_COMP["KY"], linewidth=2,
-                      linestyle="-.", marker="s", markersize=7,
-                      label="KER — Kentucky (Pagan 2009)")
+                      linestyle="-.", marker="s", markersize=7, label="KER — Kentucky (Pagan 2009)")
             ax_c.plot(ker_meses, ker_alz_w, color=COL_COMP["World"], linewidth=2,
                       linestyle="-.", alpha=0.8, label="KER — Promedio mundial")
             ax_c.plot(dc_meses, dc_alz_h, color=COL_COMP["BR"], linewidth=2,
@@ -850,11 +831,8 @@ with tab4:
         titulo_var = "Alzada a la cruz"
 
     ax_c.set_xlabel("Edad (meses)", fontsize=11)
-    ax_c.set_title(
-        f"{titulo_var} — {sexo_comp} PSI\n"
-        f"Rancho mexicano 2015-2025 vs literatura internacional",
-        fontsize=12, fontweight="700"
-    )
+    ax_c.set_title(f"{titulo_var} — {sexo_comp} PSI\nRancho mexicano 2015-2025 vs literatura internacional",
+                   fontsize=12, fontweight="700")
     ax_c.legend(fontsize=9, framealpha=0.9, edgecolor="#d4e8d8")
     ax_c.grid(True, alpha=0.15, linestyle="--")
     ax_c.spines["top"].set_visible(False)
@@ -864,10 +842,8 @@ with tab4:
     st.pyplot(fig_c)
     plt.close(fig_c)
 
-    # Tabla comparativa
     st.markdown("<hr>", unsafe_allow_html=True)
     st.subheader("Tabla comparativa en puntos clave")
-
     meses_k = [0, 6, 12, 18]
 
     def ker_val(lista, meses_lista, meses_target):
@@ -875,64 +851,48 @@ with tab4:
         return [round(d[m], 1) if m in d else "—" for m in meses_target]
 
     if "Peso" in var_comp and sexo_comp == "Machos":
-        data_tab = {
-            "Edad (meses)":      meses_k,
-            "Rancho MX (kg)":    [mx_m_p50.get(m, "—")  for m in meses_k],
-            "Hintz 1979 Canada": [hintz_m.get(m, "—")   for m in meses_k],
-            "KER Kentucky":      ker_val(ker_ky,    ker_meses, meses_k),
-            "KER Mundial":       ker_val(ker_world,  ker_meses, meses_k),
-            "Brasil 2021":       ker_val(dc_m,       dc_meses,  meses_k),
-        }
+        data_tab = {"Edad (meses)": meses_k,
+                    "Rancho MX (kg)":    [mx_m_p50.get(m,"—") for m in meses_k],
+                    "Hintz 1979 Canada": [hintz_m.get(m,"—")  for m in meses_k],
+                    "KER Kentucky":      ker_val(ker_ky,   ker_meses, meses_k),
+                    "KER Mundial":       ker_val(ker_world, ker_meses, meses_k),
+                    "Brasil 2021":       ker_val(dc_m,      dc_meses,  meses_k)}
     elif "Peso" in var_comp and sexo_comp == "Hembras":
-        data_tab = {
-            "Edad (meses)":      meses_k,
-            "Rancho MX (kg)":    [mx_h_p50.get(m, "—")  for m in meses_k],
-            "Hintz 1979 Canada": [hintz_h.get(m, "—")   for m in meses_k],
-            "KER Kentucky":      ker_val(ker_ky,    ker_meses, meses_k),
-            "KER Mundial":       ker_val(ker_world,  ker_meses, meses_k),
-            "Brasil 2021":       ker_val(dc_h,       dc_meses,  meses_k),
-        }
+        data_tab = {"Edad (meses)": meses_k,
+                    "Rancho MX (kg)":    [mx_h_p50.get(m,"—") for m in meses_k],
+                    "Hintz 1979 Canada": [hintz_h.get(m,"—")  for m in meses_k],
+                    "KER Kentucky":      ker_val(ker_ky,   ker_meses, meses_k),
+                    "KER Mundial":       ker_val(ker_world, ker_meses, meses_k),
+                    "Brasil 2021":       ker_val(dc_h,      dc_meses,  meses_k)}
     elif "Alzada" in var_comp and sexo_comp == "Machos":
-        data_tab = {
-            "Edad (meses)":      meses_k,
-            "Rancho MX (cm)":    [mx_am_p50.get(m, "—") for m in meses_k],
-            "Hintz 1979 Canada": [hintz_am.get(m, "—")  for m in meses_k],
-            "KER Kentucky":      ker_val(ker_alz_ky, ker_meses, meses_k),
-            "KER Mundial":       ker_val(ker_alz_w,  ker_meses, meses_k),
-            "Brasil 2021":       ker_val(dc_alz_m,   dc_meses,  meses_k),
-        }
+        data_tab = {"Edad (meses)": meses_k,
+                    "Rancho MX (cm)":    [mx_am_p50.get(m,"—") for m in meses_k],
+                    "Hintz 1979 Canada": [hintz_am.get(m,"—")  for m in meses_k],
+                    "KER Kentucky":      ker_val(ker_alz_ky, ker_meses, meses_k),
+                    "KER Mundial":       ker_val(ker_alz_w,  ker_meses, meses_k),
+                    "Brasil 2021":       ker_val(dc_alz_m,   dc_meses,  meses_k)}
     else:
-        data_tab = {
-            "Edad (meses)":      meses_k,
-            "Rancho MX (cm)":    [mx_ah_p50.get(m, "—") for m in meses_k],
-            "Hintz 1979 Canada": [hintz_am.get(m, "—")  for m in meses_k],
-            "KER Kentucky":      ker_val(ker_alz_ky, ker_meses, meses_k),
-            "KER Mundial":       ker_val(ker_alz_w,  ker_meses, meses_k),
-            "Brasil 2021":       ker_val(dc_alz_h,   dc_meses,  meses_k),
-        }
+        data_tab = {"Edad (meses)": meses_k,
+                    "Rancho MX (cm)":    [mx_ah_p50.get(m,"—") for m in meses_k],
+                    "Hintz 1979 Canada": [hintz_am.get(m,"—")  for m in meses_k],
+                    "KER Kentucky":      ker_val(ker_alz_ky, ker_meses, meses_k),
+                    "KER Mundial":       ker_val(ker_alz_w,  ker_meses, meses_k),
+                    "Brasil 2021":       ker_val(dc_alz_h,   dc_meses,  meses_k)}
 
     st.dataframe(pd.DataFrame(data_tab), use_container_width=True, hide_index=True)
 
-    st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("""
     <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
-                padding:1rem 1.2rem;font-size:0.85rem;color:#2d5a3d">
-        <strong>Interpretacion de resultados:</strong><br><br>
-        Al <strong>nacimiento</strong>, el rancho mexicano muestra pesos similares a
-        Canada (Hintz, 1979) y Brasil (De Castro, 2021), pero inferiores a Kentucky y
-        el promedio mundial KER. Esto es consistente con diferencias geneticas y de
-        seleccion por industria hipica (Pagan, 2025).<br><br>
-        A los <strong>6 meses</strong>, las diferencias se reducen a menos de 5 kg en
-        todas las poblaciones, sugiriendo que el manejo nutricional postnatal del rancho
-        es comparable al estandar internacional.<br><br>
-        A los <strong>18 meses</strong>, el rancho mexicano muestra una brecha de 17-26 kg
-        respecto a las referencias angloamericanas, atribuible a que los animales son
-        vendidos al hipodromo antes de completar el ciclo de preparacion de yearling.
+                padding:1rem 1.2rem;font-size:0.85rem;color:#2d5a3d;margin-top:0.75rem">
+        <strong>Interpretacion:</strong> Al nacimiento el rancho MX es comparable a Canada y Brasil,
+        pero inferior a Kentucky (-11 kg). A los 6 meses las diferencias son menores a 5 kg.
+        La brecha de 17-26 kg a los 18 meses se atribuye a practicas de venta, no a deficit nutricional.
     </div>
     """, unsafe_allow_html=True)
 
+
 # ══════════════════════════════════════════════════════════════
-# TAB 5 — REPORTE IA
+# TAB 5 — REPORTE IA (Groq - LLaMA 3.3 70B)
 # ══════════════════════════════════════════════════════════════
 
 with tab5:
@@ -942,31 +902,23 @@ with tab5:
     st.markdown("""
     <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
                 padding:0.9rem 1.1rem;font-size:0.85rem;color:#2d5a3d;margin-bottom:1rem">
-        Ingresa los datos del potro y el sistema generará automáticamente un
-        reporte clínico narrativo con interpretación y recomendaciones,
-        utilizando inteligencia artificial (Claude Sonnet).
+        Ingresa los datos del potro y el sistema generara automaticamente un reporte
+        clinico narrativo usando <strong>LLaMA 3.3 70B</strong> (Meta AI) via Groq.
     </div>
     """, unsafe_allow_html=True)
-
-    # ── Entrada de datos ──
-    st.subheader("Datos del potro")
 
     col_ia1, col_ia2, col_ia3 = st.columns(3)
     with col_ia1:
         nombre_ia = st.text_input("Nombre / identificador",
-                                  placeholder="Ej. Hijo de Mila Race",
-                                  key="nombre_ia")
+                                  placeholder="Ej. Hijo de Mila Race", key="nombre_ia")
     with col_ia2:
-        sexo_ia = st.radio("Sexo:", ["Macho", "Hembra"],
-                           horizontal=True, key="sexo_ia")
+        sexo_ia = st.radio("Sexo:", ["Macho", "Hembra"], horizontal=True, key="sexo_ia")
     with col_ia3:
-        rancho_ia = st.text_input("Rancho", value="Rancho PSI México",
-                                  key="rancho_ia")
+        rancho_ia = st.text_input("Rancho", value="Rancho PSI Mexico", key="rancho_ia")
 
-    st.markdown("**Mediciones disponibles** — ingresa los datos que tengas:")
-
+    st.markdown("**Mediciones disponibles:**")
     MESES_IA = [0, 1, 3, 6, 9, 12, 18]
-    pesos_ia = {}
+    pesos_ia   = {}
     alzadas_ia = {}
 
     cols_ia = st.columns(4)
@@ -986,34 +938,27 @@ with tab5:
             if av > 0:
                 alzadas_ia[mes] = av
 
-    # Contexto clínico adicional
     st.markdown("**Contexto clínico adicional** — opcional")
     col_ctx1, col_ctx2 = st.columns(2)
     with col_ctx1:
-        antecedentes = st.text_area(
-            "Antecedentes (enfermedades, tratamientos, etc.)",
-            placeholder="Ej. Desparasitado a los 2 meses, sin enfermedades reportadas...",
-            height=80, key="antecedentes_ia"
-        )
+        antecedentes = st.text_area("Antecedentes",
+                                    placeholder="Ej. Desparasitado a los 2 meses...",
+                                    height=80, key="antecedentes_ia")
     with col_ctx2:
-        manejo = st.text_area(
-            "Manejo y alimentación",
-            placeholder="Ej. Pastoreo libre + concentrado 1kg/día desde mes 3...",
-            height=80, key="manejo_ia"
-        )
+        manejo = st.text_area("Manejo y alimentacion",
+                              placeholder="Ej. Pastoreo libre + concentrado...",
+                              height=80, key="manejo_ia")
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    generar_ia = st.button("🤖 Generar reporte clínico con IA",
-                           type="primary", use_container_width=True,
-                           key="btn_ia")
+    generar_ia = st.button("🤖 Generar reporte clinico con IA",
+                           type="primary", use_container_width=True, key="btn_ia")
 
     if generar_ia:
         meses_con_peso = [m for m in pesos_ia if pesos_ia[m] > 0]
         if len(meses_con_peso) < 2:
-            st.warning("Ingresa al menos 2 mediciones de peso para generar el reporte.")
+            st.warning("Ingresa al menos 2 mediciones de peso.")
             st.stop()
 
-        # ── Calcular percentiles para cada medición ──
         sk_ia = "M" if sexo_ia == "Macho" else "H"
         sp_ia = stats_ref[f"stats_{sk_ia}"]
         sa_ia = stats_alz[f"stats_{sk_ia}"]
@@ -1022,149 +967,95 @@ with tab5:
         for mes in sorted(meses_con_peso):
             if mes == 0:
                 datos_eval.append({
-                    "mes": mes,
-                    "etiqueta": "Nacimiento",
-                    "peso": pesos_ia[mes],
-                    "alzada": alzadas_ia.get(mes),
-                    "percentil_peso": "Sin referencia (mes 0)",
-                    "zona_peso": "N/A"
+                    "mes": mes, "etiqueta": "Nacimiento",
+                    "peso": pesos_ia[mes], "diff_pct": 0,
+                    "zona_peso": "Peso al nacer", "alzada_info": ""
                 })
                 continue
-
             ref = sp_ia[sp_ia.edad_meses == mes]
             if ref.empty:
                 continue
-
             peso = pesos_ia[mes]
-            p10  = ref["p10"].values[0]
-            p25  = ref["p25"].values[0]
-            p50  = ref["p50"].values[0]
-            p75  = ref["p75"].values[0]
-            p90  = ref["p90"].values[0]
+            p10 = ref["p10"].values[0]; p25 = ref["p25"].values[0]
+            p50 = ref["p50"].values[0]; p75 = ref["p75"].values[0]
+            p90 = ref["p90"].values[0]
             diff = ((peso - p50) / p50) * 100
-
-            if peso < p10:
-                zona = "MUY BAJO (< P10)"
-            elif peso < p25:
-                zona = "BAJO (P10-P25)"
-            elif peso <= p75:
-                zona = "NORMAL (P25-P75)"
-            elif peso <= p90:
-                zona = "ALTO (P75-P90)"
-            else:
-                zona = "MUY ALTO (> P90)"
-
+            if peso < p10:       zona = "MUY BAJO (< P10)"
+            elif peso < p25:     zona = "BAJO (P10-P25)"
+            elif peso <= p75:    zona = "NORMAL (P25-P75)"
+            elif peso <= p90:    zona = "ALTO (P75-P90)"
+            else:                zona = "MUY ALTO (> P90)"
             alz_info = ""
             if mes in alzadas_ia and alzadas_ia[mes] > 0:
                 rfa = sa_ia[sa_ia.edad_meses == mes]
                 if not rfa.empty:
                     a50 = rfa["p50"].values[0]
                     da  = ((alzadas_ia[mes] - a50) / a50) * 100
-                    alz_info = f"{alzadas_ia[mes]:.2f} m ({da:+.1f}% vs mediana {a50:.2f} m)"
-
+                    alz_info = f"{alzadas_ia[mes]:.2f} m ({da:+.1f}% vs mediana)"
             datos_eval.append({
-                "mes":            mes,
-                "etiqueta":       f"Mes {mes}",
-                "peso":           peso,
-                "p25":            round(p25, 1),
-                "p50":            round(p50, 1),
-                "p75":            round(p75, 1),
-                "diff_pct":       round(diff, 1),
-                "zona_peso":      zona,
-                "alzada_info":    alz_info,
+                "mes": mes, "etiqueta": f"Mes {mes}", "peso": peso,
+                "p50": round(p50, 1), "diff_pct": round(diff, 1),
+                "zona_peso": zona, "alzada_info": alz_info
             })
 
-        # ── Clasificar patrón ──
-        vals_p = [d["peso"] for d in datos_eval if d["mes"] > 0]
-        n_bajo = sum(1 for d in datos_eval if "BAJO" in d.get("zona_peso", ""))
-        n_alto = sum(1 for d in datos_eval if "ALTO" in d.get("zona_peso", ""))
-        n_eval = len([d for d in datos_eval if d["mes"] > 0])
-
-        perdidas = sum(1 for i in range(1, len(vals_p)) if vals_p[i] < vals_p[i - 1])
-        caida    = any((vals_p[i] - vals_p[i - 1]) / vals_p[i - 1] * 100 < -8
+        vals_p  = [d["peso"] for d in datos_eval if d["mes"] > 0]
+        n_bajo  = sum(1 for d in datos_eval if "BAJO" in d.get("zona_peso", ""))
+        n_alto  = sum(1 for d in datos_eval if "ALTO" in d.get("zona_peso", ""))
+        n_eval  = len([d for d in datos_eval if d["mes"] > 0])
+        perdidas = sum(1 for i in range(1, len(vals_p)) if vals_p[i] < vals_p[i-1])
+        caida    = any((vals_p[i]-vals_p[i-1])/vals_p[i-1]*100 < -8
                        for i in range(1, len(vals_p)))
 
         if (perdidas >= 4) or caida:
             patron_ia = "Irregular"
-        elif n_alto / n_eval >= 0.6 if n_eval > 0 else False:
+        elif n_eval > 0 and n_alto / n_eval >= 0.6:
             patron_ia = "Superior"
-        elif n_bajo / n_eval >= 0.6 if n_eval > 0 else False:
+        elif n_eval > 0 and n_bajo / n_eval >= 0.6:
             patron_ia = "Inferior"
         else:
             patron_ia = "Normal"
 
-        # ── Construir prompt para Claude ──
         tabla_mediciones = "\n".join([
-            f"  - {d['etiqueta']}: {d['peso']} kg "
-            f"| Percentil: {d.get('zona_peso','N/A')} "
-            f"| {d['diff_pct']:+.1f}% vs mediana "
-            f"{'| Alzada: ' + d['alzada_info'] if d.get('alzada_info') else ''}"
-            if d["mes"] > 0 else
-            f"  - {d['etiqueta']}: {d['peso']} kg (peso al nacer)"
+            f"  - {d['etiqueta']}: {d['peso']} kg | {d['zona_peso']} "
+            f"| {d['diff_pct']:+.1f}% vs P50 "
+            f"{'| Alzada: '+d['alzada_info'] if d.get('alzada_info') else ''}"
+            if d["mes"] > 0 else f"  - Nacimiento: {d['peso']} kg"
             for d in datos_eval
         ])
 
-        prompt = f"""Eres un médico veterinario especialista en equinos con experiencia en cría de Pura Sangre Inglés (PSI).
+        prompt = f"""Eres un medico veterinario especialista en equinos con experiencia en cria de Pura Sangre Ingles (PSI).
 
-Debes generar un REPORTE CLÍNICO PROFESIONAL sobre el crecimiento de un potro PSI basándote en los datos de monitoreo mensual, comparados contra curvas de referencia percentiladas construidas con 217 potros PSI de un rancho mexicano (2015-2025).
+Genera un REPORTE CLINICO PROFESIONAL sobre el crecimiento del siguiente potro PSI, basandote en sus mediciones comparadas contra curvas percentiladas de 217 potros PSI de un rancho mexicano (2015-2025). P25-P75 es el rango normal.
 
-DATOS DEL POTRO:
+DATOS:
 - Nombre: {nombre_ia or 'Sin nombre'}
 - Sexo: {sexo_ia}
 - Rancho: {rancho_ia}
-- Patrón de crecimiento clasificado: {patron_ia}
+- Patron de crecimiento: {patron_ia}
 
-MEDICIONES Y PERCENTILES (referencia: rancho PSI México, P25-P75 = rango normal):
+MEDICIONES Y PERCENTILES:
 {tabla_mediciones}
 
-ANTECEDENTES CLÍNICOS: {antecedentes if antecedentes else 'No especificados'}
-MANEJO Y ALIMENTACIÓN: {manejo if manejo else 'No especificado'}
+ANTECEDENTES: {antecedentes if antecedentes else 'No especificados'}
+MANEJO: {manejo if manejo else 'No especificado'}
 
-GENERA UN REPORTE CLÍNICO que incluya:
+Estructura el reporte con estas secciones:
+1. RESUMEN EJECUTIVO (2-3 oraciones)
+2. EVALUACION DEL CRECIMIENTO
+3. HALLAZGOS RELEVANTES
+4. RECOMENDACIONES CLINICAS (minimo 3, ordenadas por urgencia)
+5. PLAN DE SEGUIMIENTO
 
-1. **RESUMEN EJECUTIVO** (2-3 oraciones con el hallazgo principal)
+Escribe en espanol, con terminologia veterinaria apropiada y comprensible para el personal del rancho."""
 
-2. **EVALUACIÓN DEL CRECIMIENTO**
-   - Análisis del patrón de crecimiento identificado
-   - Comparación con la población de referencia del rancho
-   - Tendencia general (progresión, estabilidad, irregularidades)
-
-3. **HALLAZGOS RELEVANTES**
-   - Meses con valores fuera del rango normal (si los hay)
-   - Correlación entre peso y alzada (si se tienen ambos datos)
-   - Velocidad de ganancia de peso entre mediciones
-
-4. **RECOMENDACIONES CLÍNICAS**
-   - Al menos 3 recomendaciones específicas y accionables
-   - Ordenadas de mayor a menor urgencia
-   - Basadas en el patrón de crecimiento identificado
-
-5. **SEGUIMIENTO SUGERIDO**
-   - Frecuencia de monitoreo recomendada
-   - Indicadores de alarma que requieren atención veterinaria inmediata
-   - Próxima evaluación sugerida
-
-El reporte debe ser profesional, en español, con terminología veterinaria apropiada pero comprensible para el personal del rancho. Usa formato con secciones claramente delimitadas."""
-
-        # ── Llamar a la Gemini──
-        with st.spinner("Generando reporte clínico con IA..."):
-            try:
-                import requests
-                import os
-
-                api_key = os.environ.get("GEMINI_API_KEY", "")
-                if not api_key:
-                    st.error("API key no configurada. Agrega GEMINI_API_KEY en los secretos de Streamlit.")
-                    st.stop()
-
-                with st.spinner("Generando reporte clínico con IA..."):
+        with st.spinner("Generando reporte clinico con IA..."):
             try:
                 import requests
                 import os
 
                 api_key = os.environ.get("GROQ_API_KEY", "")
                 if not api_key:
-                    st.error("API key no configurada. Agrega GROQ_API_KEY en los secretos de Streamlit.")
+                    st.error("API key no configurada. Agrega GROQ_API_KEY en Streamlit Secrets.")
                     st.stop()
 
                 response = requests.post(
@@ -1179,16 +1070,12 @@ El reporte debe ser profesional, en español, con terminología veterinaria apro
                             {
                                 "role": "system",
                                 "content": (
-                                    "Eres un médico veterinario especialista en equinos "
-                                    "con experiencia en cría de Pura Sangre Inglés (PSI). "
-                                    "Generas reportes clínicos profesionales, en español, "
-                                    "con terminología veterinaria apropiada."
+                                    "Eres un medico veterinario especialista en equinos "
+                                    "con experiencia en cria de Pura Sangre Ingles. "
+                                    "Generas reportes clinicos profesionales en espanol."
                                 )
                             },
-                            {
-                                "role": "user",
-                                "content": prompt
-                            }
+                            {"role": "user", "content": prompt}
                         ],
                         "temperature": 0.4,
                         "max_tokens": 1500,
@@ -1205,11 +1092,11 @@ El reporte debe ser profesional, en español, con terminología veterinaria apro
                     <div style="background:#1a4731;color:white;border-radius:10px;
                                 padding:1rem 1.5rem;margin-bottom:1rem">
                         <div style="font-size:1.1rem;font-weight:700">
-                            Reporte Clínico — {nombre_ia or 'Potro evaluado'}
+                            Reporte Clinico — {nombre_ia or 'Potro evaluado'}
                         </div>
                         <div style="font-size:0.8rem;opacity:0.8;margin-top:0.3rem">
-                            {sexo_ia} · {rancho_ia} · Patrón: {patron_ia} · 
-                            Generado con LLaMA 3.3 70B (Meta AI) vía Groq
+                            {sexo_ia} · {rancho_ia} · Patron: {patron_ia} ·
+                            Generado con LLaMA 3.3 70B (Meta AI) via Groq
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1220,13 +1107,13 @@ El reporte debe ser profesional, en español, con terminología veterinaria apro
                     st.download_button(
                         label="📄 Descargar reporte en .txt",
                         data=(
-                            f"REPORTE CLÍNICO CRECIPSI\n"
+                            f"REPORTE CLINICO CRECIPSI\n"
                             f"{'='*50}\n"
                             f"Potro: {nombre_ia or 'Sin nombre'}\n"
                             f"Sexo: {sexo_ia}\n"
                             f"Rancho: {rancho_ia}\n"
-                            f"Patrón: {patron_ia}\n"
-                            f"Modelo: LLaMA 3.3 70B (Meta AI) vía Groq\n"
+                            f"Patron: {patron_ia}\n"
+                            f"Modelo: LLaMA 3.3 70B (Meta AI) via Groq\n"
                             f"{'='*50}\n\n"
                             f"{reporte_texto}"
                         ),
@@ -1235,108 +1122,54 @@ El reporte debe ser profesional, en español, con terminología veterinaria apro
                     )
 
                 elif "error" in data:
-                    st.error(f"Error de Groq: {data['error'].get('message', 'Error desconocido')}")
+                    st.error(f"Error de Groq: {data['error'].get('message','Error desconocido')}")
                 else:
                     st.error("Sin respuesta del modelo. Intenta de nuevo.")
 
             except Exception as e:
                 st.error(f"Error al conectar con Groq: {str(e)}")
-                # Extraer texto de la respuesta de Gemini
-                if (
-                    "candidates" in data
-                    and len(data["candidates"]) > 0
-                    and "content" in data["candidates"][0]
-                    and "parts" in data["candidates"][0]["content"]
-                ):
-                    reporte_texto = data["candidates"][0]["content"]["parts"][0]["text"]
 
-                    # ── Mostrar reporte ──
-                    st.markdown("<hr>", unsafe_allow_html=True)
-                    st.markdown(f"""
-                    <div style="background:#1a4731;color:white;border-radius:10px;
-                                padding:1rem 1.5rem;margin-bottom:1rem">
-                        <div style="font-size:1.1rem;font-weight:700">
-                            Reporte Clínico — {nombre_ia or 'Potro evaluado'}
-                        </div>
-                        <div style="font-size:0.8rem;opacity:0.8;margin-top:0.3rem">
-                            {sexo_ia} · {rancho_ia} · Patrón: {patron_ia} · 
-                            Generado con Gemini 1.5 Flash (Google AI)
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
 
-                    st.markdown(reporte_texto)
+# ══════════════════════════════════════════════════════════════
+# TAB 6 — METODOLOGÍA
+# ══════════════════════════════════════════════════════════════
 
-                    st.markdown("<hr>", unsafe_allow_html=True)
-                    st.download_button(
-                        label="📄 Descargar reporte en .txt",
-                        data=(
-                            f"REPORTE CLÍNICO CRECIPSI\n"
-                            f"{'='*50}\n"
-                            f"Potro: {nombre_ia or 'Sin nombre'}\n"
-                            f"Sexo: {sexo_ia}\n"
-                            f"Rancho: {rancho_ia}\n"
-                            f"Patrón: {patron_ia}\n"
-                            f"Modelo: Gemini 1.5 Flash (Google AI)\n"
-                            f"{'='*50}\n\n"
-                            f"{reporte_texto}"
-                        ),
-                        file_name=f"reporte_{(nombre_ia or 'potro').replace(' ','_')}.txt",
-                        mime="text/plain"
-                    )
+with tab6:
+    st.markdown('<div class="section-pill">ℹ️ Metodologia y referencias</div>',
+                unsafe_allow_html=True)
 
-                elif "error" in data:
-                    msg = data["error"].get("message", "Error desconocido")
-                    st.error(f"Error de Gemini: {msg}")
-                else:
-                    st.error("No se recibió respuesta del modelo. Intenta de nuevo.")
-                    st.json(data)
+    m1, m2 = st.columns(2)
+    with m1:
+        st.markdown("#### Base de datos")
+        st.markdown("""
+        Registros zootecnicos reales de un rancho PSI mexicano (2015-2025).
+        **217 animales**, **4,175 mediciones** de peso y **3,981 de alzada**.
+        Completitud del 100% en alzada. El 89.4% tiene peso al nacer.
+        """)
+        st.markdown("#### Estadistica aplicada")
+        st.markdown("""
+        - Percentiles P10-P90 por edad (0-22 meses) y sexo
+        - Regresion polinomial grado 3 (sexo + edad + alzada)
+        - Validacion train/test 80%/20% (random_state=42)
+        - Clasificador clinico percentilado
+        - Correlacion peso-alzada: r=0.9666 (Pearson, p<0.001)
+        """)
 
-            except Exception as e:
-                st.error(f"Error al conectar con Gemini: {str(e)}")
-                if "content" in data and len(data["content"]) > 0:
-                    reporte_texto = data["content"][0]["text"]
+    with m2:
+        st.markdown("#### Metricas de validacion")
+        st.dataframe(pd.DataFrame({
+            "Modelo":  ["Peso (con alzada)", "Peso (sin alzada)", "Alzada"],
+            "R2":      ["0.9641",            "0.9458",            "0.9552"],
+            "MAE":     ["15.1 kg",           "19.6 kg",           "2.0 cm"],
+        }), use_container_width=True, hide_index=True)
 
-                    # ── Mostrar reporte ──
-                    st.markdown("<hr>", unsafe_allow_html=True)
-                    st.markdown(f"""
-                    <div style="background:#1a4731;color:white;border-radius:10px;
-                                padding:1rem 1.5rem;margin-bottom:1rem">
-                        <div style="font-size:1.1rem;font-weight:700">
-                            Reporte Clínico — {nombre_ia or 'Potro evaluado'}
-                        </div>
-                        <div style="font-size:0.8rem;opacity:0.8;margin-top:0.3rem">
-                            {sexo_ia} · {rancho_ia} · Patrón: {patron_ia} · 
-                            Generado con IA (Claude Sonnet)
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    st.markdown(reporte_texto)
-
-                    # Botón para copiar
-                    st.markdown("<hr>", unsafe_allow_html=True)
-                    st.download_button(
-                        label="📄 Descargar reporte en .txt",
-                        data=f"REPORTE CLÍNICO CRECIPSI\n"
-                             f"{'='*50}\n"
-                             f"Potro: {nombre_ia or 'Sin nombre'}\n"
-                             f"Sexo: {sexo_ia}\n"
-                             f"Rancho: {rancho_ia}\n"
-                             f"Patrón: {patron_ia}\n"
-                             f"{'='*50}\n\n"
-                             f"{reporte_texto}",
-                        file_name=f"reporte_{(nombre_ia or 'potro').replace(' ','_')}.txt",
-                        mime="text/plain"
-                    )
-
-                elif "error" in data:
-                    st.error(f"Error de API: {data['error'].get('message', 'Error desconocido')}")
-                else:
-                    st.error("No se recibió respuesta del modelo. Intenta de nuevo.")
-
-            except Exception as e:
-                st.error(f"Error al conectar con la API: {str(e)}")
+        st.markdown("#### Modulo LLM")
+        st.markdown("""
+        - Modelo: LLaMA 3.3 70B (Meta AI) via Groq API
+        - Tipo: Open source, gratuito, sin restricciones por region
+        - Funcion: Interpretacion clinica narrativa automatizada
+        - El LLM es un asistente — no sustituye al criterio veterinario
+        """)
 
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("#### Referencias (Vancouver)")
@@ -1353,8 +1186,8 @@ El reporte debe ser profesional, en español, con terminología veterinaria apro
     st.markdown("""
     <div style="background:#f0faf4;border:0.5px solid #52b788;border-radius:8px;
                 padding:0.8rem 1rem;font-size:0.83rem;color:#2d5a3d;margin-top:0.5rem">
-        <strong>Citacion sugerida:</strong> [Autor]. CreciPSI: Sistema de monitoreo
-        inteligente de crecimiento en potros Pura Sangre Ingles mediante inteligencia
-        artificial. FMVZ-UNAM. Diplomado en IA en Salud Global. 2026.
+        <strong>Citacion sugerida:</strong> Salgado Alvarez C. CreciPSI: Sistema de monitoreo
+        inteligente de crecimiento en potros Pura Sangre Ingles mediante inteligencia artificial.
+        FMVZ-UNAM. Diplomado en IA en Salud Global. 2026.
     </div>
     """, unsafe_allow_html=True)
