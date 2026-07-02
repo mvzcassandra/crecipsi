@@ -433,7 +433,7 @@ st.markdown("""
 <div class="metrics-row">
   <div class="metric-cell"><div class="metric-val">217</div><div class="metric-lbl">Potros PSI</div></div>
   <div class="metric-cell"><div class="metric-val">4,184</div><div class="metric-lbl">Mediciones</div></div>
-  <div class="metric-cell"><div class="metric-val">11 años</div><div class="metric-lbl">2015 – 2025</div></div>
+  <div class="metric-cell"><div class="metric-val">10 años</div><div class="metric-lbl">2015 – 2025</div></div>
   <div class="metric-cell"><div class="metric-val">0.966</div><div class="metric-lbl">R² modelo</div></div>
   <div class="metric-cell"><div class="metric-val">±14.9 kg</div><div class="metric-lbl">Error medio</div></div>
 </div>
